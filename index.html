@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>考研英语作文智能批改 · 基于王江涛《高分写作》与官方评分标准</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
+    --blue:#2563eb; --blue-light:#eff6ff; --green:#059669; --green-light:#ecfdf5;
+    --red:#dc2626; --red-light:#fef2f2; --amber:#d97706; --amber-light:#fffbeb;
+    --border:#e5e7eb;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif; background:var(--bg); color:var(--ink); line-height:1.7;}
+  .wrap{max-width:1080px; margin:0 auto; padding:24px 16px 64px;}
+  header.hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#3b82f6 100%); color:#fff; border-radius:16px; padding:36px 32px; margin-bottom:24px;}
+  header.hero h1{font-size:26px; margin-bottom:8px;}
+  header.hero p{opacity:.92; font-size:14px; max-width:780px;}
+  .tag{display:inline-block; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35); border-radius:999px; padding:2px 12px; font-size:12px; margin-right:8px; margin-top:10px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:22px 24px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .step-title{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .step-num{width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; flex:none;}
+  .step-title h2{font-size:17px;}
+  .seg{display:flex; flex-wrap:wrap; gap:10px;}
+  .seg button{border:1.5px solid var(--border); background:#fff; border-radius:10px; padding:10px 22px; font-size:15px; cursor:pointer; transition:.15s; color:var(--ink);}
+  .seg button:hover{border-color:var(--blue); color:var(--blue);}
+  .seg button.on{background:var(--blue); border-color:var(--blue); color:#fff; font-weight:600;}
+  select{border:1.5px solid var(--border); border-radius:10px; padding:10px 14px; font-size:15px; background:#fff; cursor:pointer; min-width:220px;}
+  .prompt-box{background:var(--blue-light); border:1px solid #bfdbfe; border-radius:12px; padding:18px 20px;}
+  .prompt-box .en{font-family:Georgia,"Times New Roman",serif; font-size:15.5px; color:#111827; white-space:pre-wrap;}
+  .prompt-box .cn{font-size:13.5px; color:#374151; margin-top:10px; padding-top:10px; border-top:1px dashed #bfdbfe;}
+  .meta-row{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .chip{font-size:12.5px; background:#fff; border:1px solid var(--border); border-radius:999px; padding:3px 12px; color:var(--muted);}
+  .chip b{color:var(--ink);}
+  textarea{width:100%; min-height:260px; border:1.5px solid var(--border); border-radius:12px; padding:16px; font-size:15.5px; font-family:Georgia,"Times New Roman",serif; line-height:1.8; resize:vertical;}
+  textarea:focus{outline:none; border-color:var(--blue);}
+  .count-row{display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:13px; color:var(--muted); flex-wrap:wrap; gap:8px;}
+  #btnGrade{width:100%; margin-top:14px; background:var(--blue); color:#fff; border:none; border-radius:12px; padding:15px; font-size:17px; font-weight:700; cursor:pointer; letter-spacing:2px;}
+  #btnGrade:hover{background:#1d4ed8;}
+  #btnGrade:disabled{background:#9ca3af; cursor:not-allowed;}
+  .hide{display:none;}
+  .total{display:flex; gap:22px; flex-wrap:wrap; align-items:center;}
+  .score-circle{width:150px; height:150px; border-radius:50%; background:conic-gradient(var(--blue) calc(var(--pct,0)*1%), #e5e7eb 0); display:flex; align-items:center; justify-content:center; flex:none;}
+  .score-inner{width:118px; height:118px; border-radius:50%; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .score-inner .big{font-size:30px; font-weight:800; color:var(--blue);}
+  .score-inner .small{font-size:11.5px; color:var(--muted); text-align:center;}
+  .bars{flex:1; min-width:280px;}
+  .bar-item{margin-bottom:10px;}
+  .bar-item .lbl{display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;}
+  .bar-bg{height:9px; background:#eef1f5; border-radius:99px; overflow:hidden;}
+  .bar-fg{height:100%; border-radius:99px; transition:width .6s;}
+  .verdict{margin-top:12px; background:var(--green-light); border:1px solid #a7f3d0; border-radius:10px; padding:12px 16px; font-size:14px;}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--muted); margin:10px 0 12px;}
+  .legend b{padding:1px 4px; border-radius:4px;}
+  mark.err{background:#fee2e2; color:#b91c1c; text-decoration:underline wavy #dc2626 1.5px; text-underline-offset:3px;}
+  mark.cliche{background:#fef3c7; text-decoration:underline wavy #d97706 1.5px; text-underline-offset:3px; color:#92400e;}
+  mark.good{background:#d1fae5; color:#065f46; border-radius:3px;}
+  .anno{background:#fafbfc; border:1px solid var(--border); border-radius:10px; padding:18px 20px; font-family:Georgia,serif; font-size:15.5px; line-height:2; white-space:pre-wrap;}
+  h3.sec{font-size:16px; margin:0 0 12px;}
+  .issue{border:1px solid var(--border); border-left:4px solid var(--red); border-radius:10px; padding:12px 16px; margin-bottom:10px; font-size:14px;}
+  .issue.warnc{border-left-color:var(--amber);}
+  .issue.goodc{border-left-color:var(--green); background:var(--green-light);}
+  .issue .frag{font-family:Georgia,serif; font-weight:600; color:#b91c1c;}
+  .issue.warnc .frag{color:#92400e;}
+  .issue .why{color:var(--muted); font-size:13px; margin:2px 0;}
+  .alts .alt{display:inline-block; background:var(--blue-light); color:#1e40af; border:1px solid #bfdbfe; border-radius:8px; padding:3px 10px; font-size:13px; margin:3px 6px 0 0; font-family:Georgia,serif;}
+  .alts .alt::before{content:"→ "; font-weight:700;}
+  .check-item{display:flex; gap:10px; align-items:flex-start; font-size:14px; padding:6px 0;}
+  .check-item input{margin-top:5px;}
+  details{border:1px solid var(--border); border-radius:10px; padding:12px 16px; margin-bottom:10px; background:#fafbfc;}
+  details summary{cursor:pointer; font-weight:600; font-size:14px;}
+  table.rubric{width:100%; border-collapse:collapse; font-size:13px; margin-top:8px;}
+  table.rubric th,table.rubric td{border:1px solid var(--border); padding:7px 10px; text-align:left; vertical-align:top;}
+  table.rubric th{background:var(--blue-light); width:120px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .bank h4{font-size:14px; color:var(--blue); margin:10px 0 4px;}
+  .bank li{font-size:13.5px; margin:3px 0 3px 18px; font-family:Georgia,serif;}
+  .bank .note{font-size:12.5px;color:var(--muted);}
+  footer{text-align:center; color:var(--muted); font-size:12px; margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>📝 考研英语作文智能批改</h1>
+  <p>题库与写作框架依据王江涛《考研英语高分写作》（2027 版）历年真题详解部分整理；评分维度与档次参照教育部考试中心公布的英语（一）/英语（二）写作评分标准。选择真题 → 粘贴作文 → 一键批改：分数预估、语法与用词标注、不地道表达诊断，每个问题均给出可替换的高分表达。</p>
+  <span class="tag">英语一 · 2005-2026</span><span class="tag">英语二 · 2010-2026</span><span class="tag">图画 / 图表 / 应用文</span><span class="tag">五档评分</span>
+</header>
+
+<div class="card">
+  <div class="step-title"><span class="step-num">1</span><h2>选择试卷类型</h2></div>
+  <div class="seg" id="segExam">
+    <button data-v="y1" class="on">英语（一）</button>
+    <button data-v="y2">英语（二）</button>
+  </div>
+  <div style="margin-top:16px">
+    <div class="step-title"><span class="step-num">2</span><h2>选择题型与年份</h2></div>
+    <div class="seg" id="segType" style="margin-bottom:12px">
+      <button data-v="small" class="on">小作文（应用文 A 节）</button>
+      <button data-v="big">大作文（B 节）</button>
+    </div>
+    <select id="yearSel"></select>
+  </div>
+</div>
+
+<div class="card">
+  <div class="step-title"><span class="step-num">3</span><h2>当年真题</h2></div>
+  <div class="meta-row" id="promptMeta"></div>
+  <div class="prompt-box">
+    <div class="en" id="promptDir"></div>
+    <div class="cn" id="promptDesc"></div>
+  </div>
+  <details style="margin-top:12px"><summary>📋 王江涛三段式写作框架 &amp; 主题高分词汇 / 信件表达库</summary>
+    <div id="framework" style="font-size:14px; margin-top:10px;"></div>
+  </details>
+</div>
+
+<div class="card">
+  <div class="step-title"><span class="step-num">4</span><h2>输入你的作文</h2></div>
+  <textarea id="essay" placeholder="在此粘贴 / 输入你的作文……&#10;&#10;小作文请包含称呼（如 Dear Sir or Madam,）与落款（如 Yours sincerely, Li Ming）；大作文建议按三段式书写，段与段之间空一行。"></textarea>
+  <div class="count-row">
+    <span id="wc">0 词</span>
+    <span id="wcreq"></span>
+  </div>
+  <button id="btnGrade">开始批改</button>
+</div>
+
+<div id="result" class="hide">
+
+  <div class="card">
+    <h3 class="sec">🎯 总评与预估分数</h3>
+    <div class="total">
+      <div class="score-circle" id="circle"><div class="score-inner"><div class="big" id="scoreBig">--</div><div class="small" id="scoreBand"></div></div></div>
+      <div class="bars">
+        <div class="bar-item"><div class="lbl"><span>内容与格式（要点完整 / 切题 / 词数）</span><b id="sCont"></b></div><div class="bar-bg"><div class="bar-fg" id="bCont" style="background:var(--blue)"></div></div></div>
+        <div class="bar-item"><div class="lbl"><span>语言准确性（语法 / 拼写 / 用词）</span><b id="sAcc"></b></div><div class="bar-bg"><div class="bar-fg" id="bAcc" style="background:var(--red)"></div></div></div>
+        <div class="bar-item"><div class="lbl"><span>结构衔接（分段 / 连接词 / 格式）</span><b id="sStr"></b></div><div class="bar-bg"><div class="bar-fg" id="bStr" style="background:var(--amber)"></div></div></div>
+        <div class="bar-item"><div class="lbl"><span>语言多样性（句式 / 词汇广度 / 亮点）</span><b id="sVar"></b></div><div class="bar-bg"><div class="bar-fg" id="bVar" style="background:var(--green)"></div></div></div>
+        <div class="bar-item"><div class="lbl"><span>主题相关性（切题 / 跑题检测）</span><b id="sTopic">--</b></div><div class="bar-bg"><div class="bar-fg" id="bTopic" style="background:var(--green)"></div></div></div>
+      </div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="sec">🔍 逐句标注</h3>
+    <div class="legend">
+      <span><b class="err">红色波浪线</b> 语法 / 拼写错误</span>
+      <span><b class="cliche">黄色波浪线</b> 不地道 / 模板化表达</span>
+      <span><b class="good">绿色高亮</b> 加分亮点</span>
+    </div>
+    <div class="anno" id="anno"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3 class="sec">❌ 语法与用词问题</h3><div id="issues"></div></div>
+    <div class="card"><h3 class="sec">✨ 亮点与得分点</h3><div id="goods"></div></div>
+  </div>
+
+  <div class="card">
+    <h3 class="sec">📌 题目信息点自检</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:6px">按评分标准，漏写题目要求的信息点会直接降档。勾选自查：</p>
+    <div id="checks"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="sec">💎 高分表达升级库（针对本篇）</h3>
+    <div class="bank" id="bank"></div>
+  </div>
+
+  <div class="card">
+    <h3 class="sec">📖 官方评分标准（当前题型）</h3>
+    <div id="rubric"></div>
+  </div>
+
+</div>
+
+<footer>题库整理自王江涛《考研英语高分写作》（2027 版）真题详解与附录；评分档次参照教育部考试中心《考研英语大纲》写作评分标准 · 仅供学习参考</footer>
+</div>
+
+<script>
+/* ================= 题库 ================= */
+const D_Y1_BIG = "Write an essay of 160-200 words based on the picture(s)/chart(s) below. In your essay, you should: 1) describe the picture/chart briefly; 2) interpret its implied meaning; 3) give your comments. You should write neatly on the ANSWER SHEET. (20 points)";
+const D_Y2_BIG = "Write an essay based on the chart below. In your writing, you should: 1) interpret the chart; 2) give your comments. You should write about 150 words on the ANSWER SHEET. (15 points)";
+const D_SMALL = "You should write about 100 words on the ANSWER SHEET. Do not sign your own name at the end; use \"Li Ming\" instead. Do not write the address. (10 points)";
+
+const DB = {
+  y1: {
+    small: [
+      {y:2005,t:"辞职信",lt:"quit",dir:"Two months ago you got a job as an editor for the magazine Designs & Fashions. But now you find that the work is not what you expected. You decide to quit. Write a letter to your boss, Mr. Wang, telling him your decision, stating your reason(s), and making an apology.\n"+D_SMALL, desc:"主题：辞职信。三大要点：告知辞职决定、说明原因、表示歉意。", checks:["开头说明辞职决定并致歉","中段给出具体、得体的辞职理由","结尾表达感谢与歉意，落款 Li Ming"]},
+      {y:2006,t:"捐助信（希望工程）",lt:"suggestion",dir:"You want to contribute to Project Hope by offering financial aid to a child in a remote area. Write a letter to the department concerned, asking them to help find a candidate. You should specify what kind of child you want to help and how you will carry out your plan.\n"+D_SMALL, desc:"主题：希望工程捐助。要点：说明想资助什么样的孩子、说明资助计划（如按年支付学费直至中学毕业）。", checks:["说明写信目的（希望通过希望工程资助儿童）","说明资助对象的具体要求","说明资助方式与计划"], vocab:["contribute my bit to this noble cause","a girl who has just started schooling but whose family cannot afford her education","pay for her tuition on an annual basis"]},
+      {y:2007,t:"建议信（图书馆服务）",lt:"suggestion",dir:"Write a letter to your university library, making suggestions for improving its service.\n"+D_SMALL, desc:"主题：向大学图书馆提改进建议。经典建议信。", checks:["自我介绍并说明写信目的","提出 2-3 条具体可行的建议（如延长开放时间、更新书刊）","礼貌收尾并致谢，落款 Li Ming"], vocab:["I have some suggestions for you to consider","prolong the time allowed for reading","provide us with more recent publications"]},
+      {y:2008,t:"道歉信（归还CD）",lt:"apology",dir:"You have just come back from Canada and found a music CD in your luggage that you forgot to return to Bob, your landlord there. Write him a letter to 1) make an apology, and 2) suggest a solution.\n"+D_SMALL, desc:"主题：向加拿大房东 Bob 道歉。要点：致歉＋提出解决办法（如寄回）。", checks:["说明写信缘由（发现未归还的CD）","真诚道歉并解释原因","提出具体补救方案"], vocab:["I am terribly sorry for my carelessness","to make up for my mistake","I will mail it to you at my expense"]},
+      {y:2009,t:"建议信（限制塑料袋）",lt:"suggestion",dir:"Restrictions on the use of plastic bags have not been so successful in some regions. \"White pollution\" is still going on. Write a letter to the editor(s) of your local newspaper to 1) give your opinions briefly, and 2) make two or three suggestions.\n"+D_SMALL, desc:"主题：白色污染治理。致报刊编辑的建议信：简述看法＋两三条建议。", checks:["说明写信背景（限塑令效果不佳、白色污染依旧）","简明表达自己的看法","提出两至三条建议"], vocab:["\"White pollution\" is still rampant in some regions","it is imperative that stricter regulations be enforced","encourage the use of eco-friendly alternatives such as cloth bags"]},
+      {y:2010,t:"通知·招募志愿者",lt:"notice",dir:"You are supposed to write for the Postgraduates' Association a notice to recruit volunteers for an international conference on globalization. The notice should include the basic qualifications for applicants and the other information which you think is relevant.\n"+D_SMALL, desc:"主题：研究生会为\"全球化国际会议\"招募志愿者。注意通知格式（标题 Notice、落款为机构而非个人）。", checks:["写明活动背景与目的","列明申请者的基本资格（英语能力、沟通能力等）","给出报名方式/联系信息，落款为 Postgraduates' Association"], vocab:["Volunteers are needed for an international conference on globalization","basic qualifications for applicants","Those with relevant experience are preferred"]},
+      {y:2011,t:"推荐信（电影）",lt:"recommendation",dir:"Write a letter to a friend of yours to 1) recommend one of your favorite movies, and 2) give reasons for your recommendation.\n"+D_SMALL, desc:"主题：向朋友推荐一部最喜欢的电影并说明理由。", checks:["点明推荐的电影名称","给出两至三条推荐理由（情节/主题/启示）","表达期待对方观影后的反馈"], vocab:["a movie that I have treasured for years","it explores the theme of personal growth in a thought-provoking way","it is well worth your while"]},
+      {y:2012,t:"欢迎+建议信（留学生）",lt:"welcome",dir:"Some international students are coming to your university. Write them an email in the name of the Students' Union to 1) extend your welcome, and 2) provide some suggestions for their campus life here.\n"+D_SMALL, desc:"主题：代表学生会欢迎来华留学生并给出校园生活建议。", checks:["以学生会名义表示欢迎","给出 2-3 条生活/学习建议（学中文、利用图书馆等）","结尾表达祝愿，落款 Li Ming（代表学生会）"], vocab:["on behalf of the Students' Union, I would like to extend our warmest welcome","make the most of the resources on campus","adapt to the new environment with ease"]},
+      {y:2013,t:"邀请信（演讲比赛评委）",lt:"invitation",dir:"Write an e-mail of about 100 words to a foreign teacher in your college, inviting him/her to be a judge for the upcoming English speech contest. You should include the details you think necessary.\n"+D_SMALL, desc:"主题：邀请外教担任英语演讲比赛评委。需包含时间、地点、职责等细节。", checks:["说明邀请目的与比赛安排（时间/地点）","说明评委职责并说明为何邀请对方","礼貌请求回复"], vocab:["cordially invite you to serve as a judge","Your professional judgment will be of great value to the participants","I would appreciate it if you could accept my invitation"]},
+      {y:2014,t:"建议信（学生体质）",lt:"suggestion",dir:"Write a letter of about 100 words to the president of your university, suggesting how to improve students' physical condition.\n"+D_SMALL, desc:"主题：致校长，建议如何增强学生体质。", checks:["自我介绍并说明写信目的","提出 2-3 条具体建议（增设体育设施、组织体育活动等）","礼貌收尾"], vocab:["improve students' physical fitness","organize more sports events on a regular basis","it would be advisable to extend the opening hours of the gym"]},
+      {y:2015,t:"推荐信（读书会）",lt:"recommendation",dir:"You are going to host a club reading session. Write an email of about 100 words recommending a book to the club members. You should state reasons for your recommendation.\n"+D_SMALL, desc:"主题：你将主持读书会，向成员推荐一本书并说明理由。", checks:["点明推荐的书名","说明推荐理由（内容价值/现实意义）","邀请成员参加读书会并预告讨论"], vocab:["a book that has profoundly shaped my outlook","Its insights remain remarkably relevant today","I look forward to hearing your views at the coming session"]},
+      {y:2016,t:"通知·图书馆信息",lt:"notice",dir:"Suppose you are a librarian in your university. Write a notice of about 100 words, providing the newly-enrolled international students with relevant information about the library.\n"+D_SMALL, desc:"主题：以图书馆管理员身份为国际新生写一则图书馆使用信息通知。", checks:["写明通知对象与目的","介绍图书馆关键信息（开放时间、借阅规则等）","落款 Li Ming（图书馆）"], vocab:["Welcome to the university library","The library is open from 8 a.m. to 10 p.m. on weekdays","Books may be renewed twice at most"]},
+      {y:2017,t:"推荐信（旅游景点）",lt:"recommendation",dir:"You are to write an email to James Cook, a newly-arrived Australian professor, recommending some tourist attractions in your city. Please give reasons for your recommendation.\n"+D_SMALL, desc:"主题：向新到任的澳籍教授 James Cook 推荐本市旅游景点。", checks:["称呼 Dear Prof. Cook（或 Dear James）","推荐具体景点并给出理由（文化/风景价值）","表达陪伴或提供信息的意愿"], vocab:["places of historical interest","a blend of ancient charm and modern vitality","it offers a genuine glimpse into local life"]},
+      {y:2018,t:"邀请信（毕业典礼）",lt:"invitation",dir:"Write an email to all international experts on campus, inviting them to attend the graduation ceremony. In your email, you should include the time, place and other relevant information about the ceremony.\n"+D_SMALL, desc:"主题：邀请校内全体国际专家出席毕业典礼，含时间地点等信息。", checks:["说明典礼时间、地点","说明典礼流程/意义","礼貌邀请并期待出席"], vocab:["It is my great honor to invite you to","the graduation ceremony will be held in ... at 2 p.m. on June 30","Your presence would add luster to this memorable occasion"]},
+      {y:2019,t:"回复信（乡村支教项目）",lt:"reply",dir:"Suppose you are working for the \"Aiding Rural Primary School\" project of your university. Write an email to answer the inquiry from an international student volunteer, specifying the details of the project.\n"+D_SMALL, desc:"主题：回复国际学生志愿者关于\"援助农村小学\"项目的咨询，说明项目细节。", checks:["感谢对方关注并说明回信目的","具体说明项目细节（时间、内容、要求）","欢迎其加入并期待回复"], vocab:["Thank you for your interest in our project","volunteers will teach basic English and organize extracurricular activities","accommodation and meals will be provided"]},
+      {y:2020,t:"通知·歌唱比赛",lt:"notice",dir:"The Students' Union of your university has assigned you to inform the international students about an upcoming singing contest. Write a notice in about 100 words.\n"+D_SMALL, desc:"主题：以学生会名义通知留学生即将举行歌唱比赛（时间/地点/报名方式）。", checks:["写明比赛名称、时间、地点","说明报名方式与截止时间","落款 Students' Union / Li Ming"], vocab:["an upcoming singing contest","Registration is open until ... at the Students' Union office","Everyone with a passion for music is welcome"]},
+      {y:2021,t:"建议信（在华求职）",lt:"suggestion",dir:"A foreign friend of yours has recently graduated from college and intends to find a job in China. Write him/her an email to make some suggestions.\n"+D_SMALL, desc:"主题：外国朋友拟在中国求职，写邮件提建议。", checks:["祝贺毕业并说明写信目的","提出求职建议（了解中国文化、提升中文、准备面试等）","表达祝福"], vocab:["Congratulations on your graduation","familiarize yourself with the local job market","a good command of Chinese will give you a competitive edge"]},
+      {y:2022,t:"邀请信（创新大赛组队）",lt:"invitation",dir:"Write an email to a professor at a British university, inviting him/her to organize a team for the international innovation contest to be held at your university.\n"+D_SMALL, desc:"主题：邀请英国大学教授组队参加在本校举办的国际创新大赛。", checks:["说明大赛名称、时间、地点","说明邀请理由与对方价值","礼貌请求回复"], vocab:["the International Innovation Contest is to be held at our university","Your expertise would be an invaluable asset to the team","I would be grateful for a reply at your earliest convenience"]},
+      {y:2023,t:"通知·招募研究助理",lt:"notice",dir:"Write a notice to recruit a student for Professor Smith's research project on campus sports activities. Specify the duties and requirements of the job.\n"+D_SMALL, desc:"主题：为 Prof. Smith 的\"校园体育活动\"研究项目招募学生，写明职责与要求。", checks:["写明项目名称与招募目的","列明岗位职责（收集数据、整理问卷等）","列明任职要求与联系方式"], vocab:["a research assistant is needed for Professor Smith's project","The successful applicant will collect and analyze questionnaire data","Applicants are expected to be diligent and proficient in statistics"]},
+      {y:2024,t:"回复邮件·口头报告建议",lt:"reply",dir:"Read the following email from an international student and write a reply.\nDear Li Ming,\nI've got a class assignment to make an oral report on an ancient Chinese scientist, but I'm not sure how to prepare for it. Can you give me some advice? Thank you for your help.\nYours,\nPaul\nWrite your answer in about 100 words on the ANSWER SHEET. Do not use your own name in your email; use \"Li Ming\" instead. (10 points)", desc:"主题：回复 Paul，就\"古代中国科学家\"口头报告的准备工作提建议。", checks:["回应来信并说明回信目的","给出具体建议（选题人物、资料来源、结构安排）","表达祝愿"], vocab:["choose a figure such as Zu Chongzhi or Zhang Heng","organize your report with a clear introduction, body and conclusion","rehearse several times to polish your delivery"]},
+      {y:2025,t:"回复邮件·手工艺展",lt:"reply",dir:"Read the following email from your classmate Paul and write him a reply.\nDear Li Ming,\nI was really excited to hear that you'd invite some young craftsmen to demonstrate their innovative craft-making on campus. May I know more about what they'll show? Also, I'd like to help with your preparation work. Please let me know what I can do.\nYours, Paul\nWrite your answer in about 100 words on the ANSWER SHEET. Do not use your own name in your email; use \"Li Ming\" instead. (10 points)", desc:"主题：回复 Paul，介绍年轻手工艺人将展示的内容，并给他安排准备工作。", checks:["回应 Paul 的两个问题（展示内容＋如何帮忙）","介绍展示内容（创新手工艺品、现场制作等）","给他安排具体任务并致谢"], vocab:["demonstrate their innovative craft-making skills","ranging from paper-cutting to bamboo weaving","It would be wonderful if you could help with the venue arrangement"]},
+      {y:2026,t:"回复邮件·手写家书",lt:"reply",dir:"Read the following email from your friend Paul and write him a reply.\nHi Li Ming,\nI was really moved by the Chinese families' handwritten letters you posted yesterday. They are priceless! Could you please tell me a bit more about them? And are they currently on public display somewhere? I'm very keen to see them in person. Thanks.\nPaul\nYou should write about 100 words on the ANSWER SHEET. Do not use your own name in the email; use \"Li Ming\" instead. (10 points)", desc:"主题：回复 Paul，介绍中国家庭手写家书，并告知可参观的展览地点。", checks:["回应 Paul 的两个问题（家书详情＋展览地点）","介绍家书的意义/内容","给出具体参观建议并收尾"], vocab:["a precious record of family affection","handwritten letters carry a warmth that emails can hardly match","they are on display at the Beijing Folk Museum"]},
+    ],
+    big: [
+      {y:2010,t:"文化\"火锅\"（多元文化）",theme:"多元文化交流与融合",dir:D_Y1_BIG, desc:"图画：一口大火锅里煮着诸多文化元素——佛、道、儒、仁、义、礼、毕昇、老舍、莎士比亚、爱因斯坦、天鹅湖、京剧、功夫等，标题为\"文化'火锅'，既美味又营养\"。寓意：多元文化交融互鉴、兼收并蓄。", checks:["简要描述火锅中的多元文化元素","阐释寓意：文化交融使文化更丰富\"美味又营养\"","给出评论或建议"], vocab:["cultural integration / a mosaic of diverse cultures","blend and assimilate the essence of various cultures","cultural exchange and mutual learning","the inclusiveness of Chinese civilization","enrich one another through interaction"]},
+      {y:2011,t:"旅程之\"余\"（旅游环保）",theme:"文明旅游与环境保护",dir:D_Y1_BIG, desc:"图画：湖面上漂浮着垃圾，一名游客坐在船上把垃圾扔进湖中，标题\"旅程之'余'\"。寓意：部分游客环保意识缺失，呼唤文明旅游。", checks:["描述画面与标题双关含义","阐释寓意：旅游垃圾折射公德与环保意识缺失","提出建议或评论"], vocab:["litter / toss rubbish into the lake","environmental awareness / civic virtue","scenic spots are reduced to garbage dumps","It is high time that we championed civilized tourism","protect the pristine beauty of nature"]},
+      {y:2012,t:"乐观与悲观",theme:"人生态度：乐观 vs 悲观",dir:D_Y1_BIG, desc:"图画：桌上瓶子倒地，液体洒了一半。一人说\"全完了！\"（悲观），另一人说\"幸好还剩点儿！\"（乐观）。寓意：面对同一境遇，心态决定视角。", checks:["描述两幅画面对比与人物对话","阐释寓意：乐观者与悲观者的差异","结合生活举例并给出评论"], vocab:["optimism / pessimism","an optimist sees the half-full glass, while a pessimist sees it half-empty","adversity / setback","maintain a positive outlook on life","Attitude, rather than circumstance, determines destiny"]},
+      {y:2013,t:"毕业生的选择",theme:"多元选择与人生规划",dir:D_Y1_BIG, desc:"图画：一群大学毕业生站在路口，面前有多条道路：求职、考研、出国、创业。寓意：毕业之际选择多元，应结合自身慎重抉择。", checks:["描述毕业生面对多条道路的画面","阐释寓意：选择多样性；适合自己的才是最好的","给出建议/评论"], vocab:["at the crossroads of life","hunt for a job / pursue postgraduate studies / study abroad / start one's own business","a well-thought-out career plan","There is no one-size-fits-all path to success","tailor one's choice to personal strengths and aspirations"]},
+      {y:2014,t:"相携（尊老爱亲）",theme:"家庭亲情与感恩",dir:D_Y1_BIG, desc:"图画：两幅对比图——三十年前，年轻的妈妈牵着小女儿的手；三十年后，长大的女儿搀扶着年迈的妈妈。寓意：代际关爱、感恩与传承。", checks:["描述两幅图的对比与时间跨度","阐释寓意：爱与孝道的代际传递","评论并呼吁感恩、陪伴"], vocab:["link arms / support the elderly","filial piety / the virtue of honoring parents","love passed down like a relay","repay our parents' devotion with companionship","A family thrives on mutual care between generations"]},
+      {y:2015,t:"手机时代的聚会",theme:"手机依赖与真实交流",dir:D_Y1_BIG, desc:"图画：一场朋友聚会中，众人不交谈，各自低头玩手机，桌面热闹而气氛冷清。寓意：手机疏远了现实中的亲密关系。", checks:["描述聚会中人人低头玩手机的反差场景","阐释寓意：过度依赖手机损害现实人际交流","给出建议（放下手机、真诚相处）"], vocab:["be glued to smartphones","phubbing / the head-down tribe","virtual connection vs. face-to-face communication","Mobile phones bring people far away closer, yet drive people nearby farther","Nothing replaces the warmth of real conversation"]},
+      {y:2016,t:"言传身教（父母的榜样）",theme:"家庭教育：身教重于言传",dir:D_Y1_BIG, desc:"两幅对比图：一位家长自己看电视，却命令孩子\"快去读书\"；另一位家长与孩子一起安静读书。寓意：与其说教，不如做榜样。", checks:["描述两种家庭教育方式的对比","阐释寓意：父母以身作则的力量","评论并提出建议"], vocab:["teach by example rather than by precept","role model / set a good example for","Children are keen imitators of their parents","Actions speak louder than words","Nurture a reading atmosphere at home"]},
+      {y:2017,t:"\"有书\"与\"读书\"",theme:"知行合一·及时行动",dir:D_Y1_BIG, desc:"图画：左侧书架上摆满书却从未翻开；右侧一人捧着一本书认真阅读。寓意：拥有资源不如真正行动；读书贵在坚持与践行。", checks:["描述\"有书不读\"与\"读书\"的对比","阐释寓意：行动/坚持比占有更重要","评论并呼吁践行"], vocab:["a wealth of books gathers dust on the shelf","read a book cover to cover","possession is not attainment","Knowledge remains lifeless until it is read and applied","Resolve to finish one book before buying the next"]},
+      {y:2018,t:"选课进行时（挑战与选择）",theme:"直面挑战·走出舒适区",dir:D_Y1_BIG, desc:"图画：一名学生面对电脑屏幕选课，一门标注\"容易通过，老师亲切\"，另一门标注\"知识新颖，具有挑战性\"。寓意：应勇于选择挑战、突破自我。", checks:["描述选课场景与两门课程的对比","阐释寓意：安逸与挑战之间应选择后者","结合成长成才给评论"], vocab:["step out of one's comfort zone","embrace challenges / rise to the occasion","a course easy to pass vs. one refreshing and challenging","Growth begins where comfort ends","What challenges us ultimately changes us"]},
+      {y:2019,t:"途中（坚持不懈）",theme:"坚持·毅力",dir:D_Y1_BIG, desc:"图画：一名登山者背着行囊攀爬陡峭的山路，汗流浃背仍向上前行，标题\"途中\"。寓意：成功贵在途中的坚持，不到山顶决不回头。", checks:["描述攀登者在途中奋力前行的画面","阐释寓意：坚持是抵达目标的必经之路","举例评论（学业/事业皆如登山）"], vocab:["perseverance / persistence / grit","trudge up the steep mountain trail","Never quit halfway to the summit","Success belongs to those who persist through the long march","Every step taken in the journey counts"]},
+      {y:2020,t:"习惯（规划与拖延）",theme:"好习惯·时间管理",dir:D_Y1_BIG, desc:"两幅对比图：女孩勤奋做作业，心想\"尽早完成才放心\"；男孩躺在沙发上，书桌上只摊着一本书，心想\"不到最后不动手\"。寓意：合理规划、拒绝拖延的好习惯决定成效。", checks:["描述两幅图的对比与两人心态","阐释寓意：时间管理与自律的重要性","提出养成好习惯的建议"], vocab:["procrastination vs. self-discipline","manage one's time wisely / schedule tasks ahead","Good habits, once formed, pay lifelong dividends","Master your minutes, or your minutes will master you","beat the deadline panic"]},
+      {y:2021,t:"兴趣与坚持（父子对话）",theme:"坚持热爱·不随波逐流",dir:D_Y1_BIG, desc:"图画：一对父子对话。学京剧的男孩说：\"爸爸，好多同学说唱戏不好玩\"；父亲答：\"你不是喜欢吗？那就够了。\"寓意：坚持自己的兴趣与热爱，不因他人看法而动摇。", checks:["描述父子对话场景（京剧/同学议论/父亲鼓励）","阐释寓意：兴趣是最好的老师；自信与坚持自我","评论：尊重内心热爱、文化自信"], vocab:["follow one's passion / stay true to one's interest","Peking Opera (a gem of traditional Chinese culture)","It is interest, rather than others' opinions, that fuels achievement","Self-confidence means daring to be different","Cherish what you love, and the rest will follow"]},
+      {y:2022,t:"广泛学习",theme:"博览群书·通识素养",dir:D_Y1_BIG, desc:"图画：一名学生在图书馆中广泛涉猎不同领域的书籍（文学、科学、历史等），画面展示跨学科学习的场景。寓意：广泛学习、拓宽知识面，方能融会贯通。", checks:["描述学生广泛阅读的场景","阐释寓意：博学与跨学科学习的价值","评论：既专又博、学以致用"], vocab:["explore books across different fields","interdisciplinary learning / a well-rounded mind","read extensively and digest deeply","Breadth of knowledge breeds creativity","Draw on wisdom from multiple disciplines"]},
+      {y:2023,t:"龙舟赛（健康与传承）",theme:"健康体魄·传统文化",dir:D_Y1_BIG, desc:"图画：端午节龙舟比赛，身着节日盛装的村民在河上奋力划龙舟，欢呼雀跃，力争上游。寓意：强健体魄、弘扬传统文化。", checks:["描述龙舟竞赛的热烈场景","阐释寓意：健康生活方式与传统文化的传承","评论：全民健身与文化自信"], vocab:["dragon-boat race / paddle in unison","carry forward traditional culture","physical fitness / a sound body fosters a sound mind","strive to be the first / the spirit of teamwork","Tradition thrives when the young take up the oars"]},
+      {y:2024,t:"健康生活（图画+图表）",theme:"公园建设·健康生活",dir:"Write an essay based on the picture and the chart below. In your essay, you should: 1) describe the picture and the chart briefly; 2) interpret the implied meaning; 3) give your comments. Write your answer in 160-200 words on the ANSWER SHEET. (20 points)", desc:"图画：公园里众多市民锻炼，一个年轻人感叹\"我家附近新建的公园太棒了！\"。图表：某市公园数量 2020 年 406 个 → 2021 年 523 个 → 2022 年 670 个。寓意：民生工程助力健康生活。", checks:["分别简要描述图画与图表数据","阐释寓意：公园增多折射民生改善与健康理念提升","评论并展望"], vocab:["a surge in the number of urban parks","public fitness facilities / green spaces","enhance residents' well-being","The growth of parks mirrors the government's commitment to livelihood","Exercise in the green, thrive in the open"]},
+      {y:2025,t:"生活水平提高（图表）",theme:"经济发展·消费升级",dir:"Write an essay based on the chart below. In your writing, you should: 1) interpret the chart; 2) give your comments. Write your answer in 160-200 words on the ANSWER SHEET. (20 points)", desc:"图表：近年来全国居民平均每百户年末主要耐用消费品拥有量——空调 2014 年 75.2 台 → 2023 年 145.9 台；洗衣机 83.7 → 98.2；电冰箱 85.5 → 103.4。寓意：经济发展带来生活水平显著提高。", checks:["解读三类耐用消费品十年数据变化","分析原因（经济发展、收入提高、消费升级）","评论与展望"], vocab:["the average ownership of major consumer durables per 100 households","a steady and remarkable upward trend","rising disposable income / consumption upgrading","The figures bear witness to China's economic vitality","Prosperity finds its way into every household"]},
+      {y:2026,t:"养老机器人（图表）",theme:"科技养老·老龄化社会",dir:"Write an essay based on the charts below. In your essay, you should: 1) describe the charts briefly; 2) interpret the charts; 3) give your comments. Write your answer in 160-200 words on the ANSWER SHEET. (20 points)", desc:"两幅图表：一项关于养老机器人的消费者调查。饼图（接受度）：完全接受 39.3%、部分接受 32.8%、不接受 27.9%；柱状图（首要关注点）：安全 46.3%、价格 24.9%、便利 10.7%。寓意：科技助力养老前景广阔，但安全与成本仍需完善。", checks:["分别描述接受度饼图与关注点柱状图","阐释数据：多数人开放接受，安全与价格是主要顾虑","评论：厂商改进＋子女陪伴不可替代"], vocab:["an aging society / elderly care robots","consumer acceptance survey","safety ranks as the top concern, followed by price and convenience","Technology should serve seniors with warmth, not just efficiency","Robots may lend a hand, but love must remain in the family"]},
+    ],
+  },
+  y2: {
+    small: [
+      {y:2010,t:"感谢+邀请信（文化交流）",lt:"thanks",dir:"You have just come back from the U.S. as a member of a Sino-American cultural exchange program. Write a letter to your American colleague to 1) express your thanks for his/her warm reception, and 2) welcome him/her to visit China in due course.\n"+D_SMALL, desc:"主题：参加中美文化交流项目回国后致谢美国同事，并欢迎其来华。", checks:["表达对美国同事热情接待的感谢","回顾具体帮助（陪同参观、介绍文化等）","邀请对方访华"], vocab:["convey my heartfelt gratitude for your warm reception","spare no effort to make my stay pleasant and rewarding","I sincerely look forward to returning your hospitality in China"]},
+      {y:2011,t:"祝贺+建议信（考上大学）",lt:"congratulation",dir:"Suppose your cousin Li Ming has just been admitted to a university. Write him a letter to 1) congratulate him, and 2) give him suggestions on how to prepare for his college life.\n"+D_SMALL, desc:"主题：表弟 Li Ming 考上大学，写信祝贺并给出入学准备建议。", checks:["祝贺被大学录取","给出 2-3 条建议（英语学习、独立生活、社团等）","表达祝福"], vocab:["Congratulations on your admission to ... university","develop the habit of independent living","strike a balance between study and extracurricular activities"]},
+      {y:2012,t:"投诉信（电子词典）",lt:"complaint",dir:"Suppose you bought an electronic dictionary from an online store, but found it faulty. Write a letter to the customer service department to 1) make a complaint, and 2) demand a prompt solution.\n"+D_SMALL, desc:"主题：就网购的故障电子词典向客服投诉并要求解决方案。", checks:["说明购买时间、商品与问题","具体描述故障（自动死机、释义不准等）","提出要求（退款或换新）并期待尽快回复"], vocab:["express my dissatisfaction with the electronic dictionary I purchased","which fails to live up to its advertised quality","I would appreciate a full refund or a brand-new replacement at your earliest convenience"]},
+      {y:2013,t:"邮件·慈善义卖",lt:"encourage",dir:"Suppose your class is to hold a charity sale for kids in need of help. Write your classmates an email to 1) inform them about the details, and 2) encourage them to participate.\n"+D_SMALL, desc:"主题：班级将举办慈善义卖（帮助困难儿童），写邮件告知同学详情并鼓励参与。", checks:["说明义卖目的、时间、地点","说明参与方式/义卖品","鼓励大家踊跃参加"], vocab:["a charity sale for children in need","Your donation, however small, will light up a child's world","Everyone is more than welcome to take an active part"]},
+      {y:2014,t:"告知+咨询信（合租生活）",lt:"inquiry",dir:"Suppose you are going to study abroad and share an apartment with John, a local student. Write him an email to 1) tell him about your living habits, and 2) ask for advice on living there.\n"+D_SMALL, desc:"主题：即将出国与当地学生 John 合租，告知自己的生活习惯并咨询当地生活建议。", checks:["介绍自己作息/卫生等习惯","询问当地生活建议（习俗、必需品）","表达愉快相处的期待"], vocab:["keep regular hours and seldom stay up late","I would appreciate your advice on local customs","Looking forward to being a considerate flatmate of yours"]},
+      {y:2015,t:"通知·养老院志愿活动",lt:"notice",dir:"Suppose your school is going to organize a volunteer activity in a nursing home. Write a notice to inform students of the details, including the time, activities and the way of registration.\n"+D_SMALL, desc:"主题：组织敬老院志愿服务，通知包含时间、活动内容、报名方式。", checks:["写明活动时间地点","说明志愿活动内容（打扫、陪伴、表演等）","写明报名方式与截止时间"], vocab:["to cultivate our sense of social responsibility","chat with the elderly and perform small programs to bring them joy","Please sign up at the Students' Union office before ..."]},
+      {y:2016,t:"感谢+建议信（培训课程）",lt:"thanks",dir:"Suppose you have just finished a training course. Write a letter to the instructor to 1) express your thanks, and 2) give suggestions on the course.\n"+D_SMALL, desc:"主题：培训结束后致谢讲师并就课程提出建议。", checks:["真诚感谢讲师的专业授课","回顾收获","委婉提出改进建议（增加实操环节等）"], vocab:["I am writing to extend my sincere thanks for your professional instruction","your vivid lectures and patient guidance benefited me enormously","It would be even better if more hands-on sessions could be added"]},
+      {y:2017,t:"回复信·接受讲座邀请",lt:"reply",dir:"Suppose Professor Williams invited you to give a presentation about Chinese culture to a group of international students. Write a reply to 1) accept the invitation, and 2) introduce the key points of your presentation.\n"+D_SMALL, desc:"主题：回复 Prof. Williams，接受面向留学生的中国文化讲座邀请，介绍讲座要点。", checks:["感谢并接受邀请","介绍讲座的关键内容（传统文化/习俗/艺术）","表达期待与致谢"], vocab:["It is my honor to accept your kind invitation","My presentation will focus on traditional festivals and folk arts","I will tailor the content to suit an international audience"]},
+      {y:2018,t:"道歉信（取消约见）",lt:"apology",dir:"Suppose you cannot attend an appointment with your professor. Write a letter to 1) make an apology, 2) explain the reason, and 3) propose a new time.\n"+D_SMALL, desc:"主题：因故无法赴与教授的约见，道歉、解释并另约时间。", checks:["真诚道歉","说明原因（如突发疾病）","提议新的见面时间"], vocab:["I am terribly sorry for failing to keep our appointment","I was suddenly taken ill and have been bedridden","Would it be convenient for you to meet next Monday afternoon instead?"]},
+      {y:2019,t:"建议+安排信（城市交通辩论）",lt:"suggestion",dir:"Suppose Professor Smith asked you to plan a debate on the city traffic. Write him an email to 1) suggest a specific topic with your reasons, and 2) tell him about your arrangement.\n"+D_SMALL, desc:"主题：就\"城市交通\"辩论赛向 Prof. Smith 提出辩题建议并说明安排。", checks:["提出具体辩题（如共享单车利弊）并说明理由","说明安排（时间、地点、流程）","请求指正/期待回复"], vocab:["I propose \"the pros and cons of shared bikes\" as the debate topic","The contest is scheduled to take place in ... on ...","Your feedback on the arrangement would be highly appreciated"]},
+      {y:2020,t:"介绍+建议信（古迹游览）",lt:"recommendation",dir:"Suppose you are planning a tour of a historical site for a group of international students. Write an email to 1) say something about the site, and 2) give some tips for the tour.\n"+D_SMALL, desc:"主题：为留学生组织历史古迹游览，介绍古迹并给出游览提示。", checks:["介绍古迹的历史与特色","给出实用提示（穿着、时间、礼仪）","表达期待"], vocab:["a time-honored site with a long history","wear comfortable shoes and bring a bottle of water","Please mind the local etiquette when taking photos"]},
+      {y:2021,t:"邀请信（线上会议）",lt:"invitation",dir:"Suppose you are organizing an online meeting. Write an email to Jack, an international student, to 1) invite him to participate, and 2) tell him about the details.\n"+D_SMALL, desc:"主题：邀请留学生 Jack 参加线上会议并告知细节。", checks:["说明会议主题与时间（平台）","说明参与方式/议程","礼貌邀请并期待回复"], vocab:["an online meeting (via Zoom) is scheduled for 9 a.m. on September 1","The meeting will focus on the plan for the new semester","Please register beforehand by filling out the online form"]},
+      {y:2022,t:"介绍+邀请信（美食节）",lt:"invitation",dir:"Suppose you are planning a campus food festival. Write an email to the international students in your university to 1) introduce the food festival, and 2) invite them to participate.\n"+D_SMALL, desc:"主题：向留学生介绍校园美食节并邀请参加。", checks:["介绍美食节时间、地点、内容","突出多元美食/互动环节","真诚邀请参加"], vocab:["a multicultural food festival will be held in the school gym on September 20","dishes from all over the country, from Liang Pi to Rou Jia Mo","You are cordially invited to savor the flavors and join the fun"]},
+      {y:2023,t:"建议信（艺术展或机器人展）",lt:"suggestion",dir:"An art exhibition and a robot show are to be held on Sunday, and your friend David asks you which one he should go to. Write him an email to 1) make a suggestion, and 2) give your reason(s).\n"+D_SMALL, desc:"主题：周日同时有艺术展与机器人展，建议 David 选其一并说明理由。", checks:["明确建议去看哪一个","给出两三条理由","表达期待交流观感"], vocab:["I would suggest the art exhibition on the theme of Chinese culture","it offers a deeper understanding of Chinese aesthetics","a robot show, by contrast, appeals more to tech enthusiasts"]},
+      {y:2024,t:"建议+询问信（古镇调查）",lt:"inquiry",dir:"Suppose you and Jack are going to do a survey on the protection of old houses in an ancient town. Write him an email to 1) put forward your plan, and 2) ask for his opinion.\n"+D_SMALL, desc:"主题：与 Jack 合作开展古镇老建筑保护调查，提出计划并征求意见。", checks:["提出调查计划（时间、地点、方法）","说明计划的具体步骤","请 Jack 提出意见并商定细节"], vocab:["conduct a field survey on the preservation of old houses","hand out questionnaires and interview local residents","Your input on the schedule would be greatly valued"]},
+      {y:2025,t:"介绍+邀请信（经典小说短剧）",lt:"invitation",dir:"Suppose you are planning a short play based on a classic Chinese novel. Write your friend John an email to 1) introduce the play, and 2) invite him to take part in it.\n"+D_SMALL, desc:"主题：计划将中国经典小说改编为短剧，向 John 介绍并邀请参演。", checks:["介绍短剧（改编自哪部经典、剧情亮点）","说明排练安排/角色","说明邀请 John 的原因并期待答复"], vocab:["a short play adapted from the classic novel Journey to the West","depict the wit and bravery of the Monkey King","Given your talent for acting, no one is better suited to the role"]},
+      {y:2026,t:"回复邮件（旅行视频）",lt:"reply",dir:"Suppose your friend Jack has shared with you a video of his family's travel in China. Write an email to tell him 1) how you feel about the video, and 2) your wish to learn more about their travel.\n"+D_SMALL, desc:"主题：回复 Jack，表达对其家庭中国旅行视频的感受，并希望了解更多。", checks:["称赞视频并具体表达感受","希望了解更多（行程、见闻、美食）","期待更多分享/见面聊"], vocab:["What a feast for the eyes the video is!","the breathtaking landscapes and heartwarming family moments","I am all ears for the stories behind your journey"]},
+    ],
+    big: [
+      {y:2010,t:"手机订阅量（柱状图·动态）",theme:"发展中国家移动通信崛起",dir:D_Y2_BIG, desc:"柱状图：2000-2008 年发展中国家与发达国家手机用户量。发达国家从约 6 亿增至约 10 亿；发展中国家从约 4 亿猛增至约 40 亿，反超并远超发达国家。寓意：发展中国家的跨越式发展与数字鸿沟的弥合。", checks:["描述两组数据的变化（尤其发展中国家的激增与反超）","分析原因（经济发展、技术普及、人口规模）","评论与展望"], vocab:["witness a dramatic surge / a meteoric rise","narrow the digital divide","mobile-phone subscriptions","overtake developed countries by a wide margin","leapfrog development"]},
+      {y:2011,t:"轿车市场份额（柱状图·动态）",theme:"国产汽车品牌崛起",dir:D_Y2_BIG, desc:"柱状图：2008、2009 年国内轿车市场部分品牌市场份额。国产品牌份额上升（约 25%→33%），日系品牌明显下滑（约 35%→25%），其余品牌基本持平。寓意：国产车竞争力增强。", checks:["对比两年各品牌份额变化","分析原因（性价比、技术进步、政策支持）","评论展望"], vocab:["market share / the domestic auto market","homegrown brands have gained ground at the expense of ...","cost-effectiveness / technological innovation","The shift mirrors the rising competitiveness of Chinese automakers","value for money"]},
+      {y:2012,t:"员工工作满意度（表格·静态）",theme:"员工满意度与年龄",dir:D_Y2_BIG, desc:"表格：某公司员工工作满意度调查。40 岁及以下组：满意约 16.7%、不清楚约 33.3%、不满意约 50%；41-50 岁组居中；50 岁以上组满意比例最高（约 40%）。寓意：年龄越大满意度越高，年轻人职业压力大。", checks:["描述不同年龄组的满意度差异（对比最明显数据）","分析原因（职业期望、晋升压力、心态变化）","评论与建议"], vocab:["job satisfaction survey / a breakdown by age group","roughly half of the employees under 40 are dissatisfied","career expectations / promotion prospects","Job satisfaction climbs with age, a trend worth pondering","Employers should attend to the younger workforce's needs"]},
+      {y:2013,t:"学生兼职情况（柱状图·静态）",theme:"大学生兼职",dir:D_Y2_BIG, desc:"柱状图：某高校各年级学生兼职比例。大四学生兼职比例最高（约 88%），明显高于低年级（大一约 68%、大二约 71%）。寓意：随着毕业临近，学生兼职意愿增强。", checks:["描述各年级数据（突出大四最高）","分析原因（就业准备、经济独立意识、时间充裕）","评论与建议"], vocab:["take part-time jobs / percentages by grade","seniors top the list, with nearly 88 percent working part-time","gain hands-on experience / ease the financial burden","Part-time jobs bridge the gap between campus and career","Strike a balance between work and study"]},
+      {y:2014,t:"城乡人口变化（柱状图·动态）",theme:"城镇化进程",dir:D_Y2_BIG, desc:"柱状图：20 年间中国城镇人口与乡村人口变化。城镇人口从约 3 亿持续攀升至约 6.7 亿，乡村人口相应下降，2010 年前后城镇人口首次超过乡村。寓意：中国城镇化快速推进。", checks:["描述 20 年城乡人口的此消彼长","分析原因（经济发展、就业机会、政策推动）","评论：城镇化成就与挑战并存"], vocab:["urbanization / urban dwellers vs. rural residents","the urban population has more than doubled over two decades","migrate to cities in search of better opportunities","Urbanization is a double-edged sword, bringing both growth and pressure","Public services should keep pace with urban expansion"]},
+      {y:2015,t:"春节假期花销（饼图·静态）",theme:"居民节日消费",dir:D_Y2_BIG, desc:"饼图：我国某市居民春节假期花销比例。新年礼物占比最大（约 40%），其次是聚餐（约 20%）与交通（约 20%），其余为娱乐等。寓意：春节消费以人情往来为主。", checks:["描述各花销占比（突出新年礼物最大）","分析原因（传统习俗、消费能力提升）","评论：理性消费建议"], vocab:["the breakdown of holiday spending","New Year gifts account for the lion's share (about 40%)","family reunion dinners / travel expenses","Gift-giving, a time-honored tradition, tops the list","Splurge within your means; affection outweighs price tags"]},
+      {y:2016,t:"学生旅游目的（饼图·静态）",theme:"大学生旅游动机",dir:D_Y2_BIG, desc:"饼图：某高校学生旅游目的调查。缓解压力占比最高（约 33%），其次是广交朋友（约 27%）、欣赏风景（约 22%）、培养独立能力（约 9%）等。寓意：旅游成为大学生减压与成长的重要方式。", checks:["描述各目的占比","分析原因（学业压力、消费观念、视野拓展）","评论与建议"], vocab:["a survey on students' purposes of traveling","relieving academic stress tops the list (about 33%)","broaden one's horizons / make new friends","Travel is the best classroom beyond campus","Pack light, but pack curiosity"]},
+      {y:2017,t:"博物馆数量与参观人数（折线图·动态）",theme:"文化事业蓬勃发展",dir:D_Y2_BIG, desc:"折线图：2013-2015 年我国博物馆数量从约 4165 家增至约 4692 家，参观人数从约 6.4 亿人次增至约 7.8 亿人次，两者同步上升。寓意：文化事业繁荣与公众文化需求增长。", checks:["描述两个指标的同步增长","分析原因（免费开放政策、文化自信、公众需求）","评论展望"], vocab:["museums and their annual visitors","a consistent upward trajectory from 2013 to 2015","free admission policy / cultural confidence","Rising museum attendance reflects the public's growing appetite for culture","Where collections grow, curiosity follows"]},
+      {y:2018,t:"选择餐厅的关注因素（饼图·静态）",theme:"消费选择与餐饮业",dir:D_Y2_BIG, desc:"饼图：2017 年某市消费者选择餐厅时的关注因素。菜品特色占比最高（约 46.6%），其次为服务质量（约 23.8%）、就餐环境（约 20.1%）、价格（约 9.5%）。寓意：消费升级背景下，人们更重品质而非价格。", checks:["描述各因素占比（突出菜品特色居首）","分析原因（收入提高、消费升级、体验经济）","评论：餐饮业启示"], vocab:["the factors consumers weigh when choosing a restaurant","the distinctive flavor of dishes ranks first (46.6%)","service quality / dining ambiance","Diners no longer chase cheapness; they chase experience","Quality is the best recipe for customer loyalty"]},
+      {y:2019,t:"本科毕业生去向（柱状图·动态）",theme:"毕业生去向多元",dir:D_Y2_BIG, desc:"柱状图：某高校 2013 年与 2018 年本科毕业生去向统计。就业仍为主体，升学比例明显上升，自主创业等比例亦有所变化。寓意：毕业生选择日趋多元，深造意愿增强。", checks:["对比两年去向数据变化","分析原因（就业竞争、学历需求、政策鼓励）","评论与建议"], vocab:["the destinations of fresh graduates","further study has gained popularity at the expense of immediate employment","the fiercer job market / an appetite for advanced degrees","A diploma is a springboard, not a shelter","Choose by planning, not by drifting"]},
+      {y:2020,t:"手机阅读目的（饼图·静态）",theme:"移动阅读",dir:D_Y2_BIG, desc:"饼图：某高校学生手机阅读目的调查。\"了解资讯\"占比最高（约三分之二），其次为\"学习知识\"与消遣娱乐等。寓意：手机成为信息获取主渠道。", checks:["描述各阅读目的占比","分析原因（智能手机普及、碎片化时间）","评论：善用碎片时间、警惕浅阅读"], vocab:["mobile reading / the purposes it serves","staying informed ranks first (about two thirds)","fragmented time / bite-sized information","The phone is a library in the pocket—use it wisely","Deep reading should not drown in skimming"]},
+      {y:2021,t:"居民锻炼方式（柱状图·静态）",theme:"全民健身方式",dir:D_Y2_BIG, desc:"柱状图：某市居民体育锻炼方式调查。独自锻炼占比最高（约 54.3%），远高于与朋友一起锻炼、社区组织锻炼（约 15.8%）等方式。寓意：健身普及但组织化程度不足。", checks:["描述独自锻炼与其他方式的悬殊对比","分析原因（生活节奏、健身习惯、组织供给不足）","评论与建议（社区组织更多集体活动）"], vocab:["ways of taking physical exercise","working out alone dominates, at 54.3 percent","community-organized activities trail far behind (15.8%)","Exercise alone builds stamina; exercise together builds bonds","Communities should serve up more group workouts"]},
+      {y:2022,t:"快递业务量（柱状图·动态）",theme:"快递业高速增长",dir:D_Y2_BIG, desc:"柱状图：2018-2020 年我国快递业务量变化（2018 年约 507 亿件 → 2019 年约 635 亿件 → 2020 年约 833 亿件），逐年大幅攀升。寓意：电商繁荣与物流业迅猛发展。", checks:["描述三年数据变化趋势","分析原因（电商发展、消费方式转变、物流基建）","评论展望"], vocab:["express delivery volume / an eye-catching expansion","climb from roughly 50 billion to over 83 billion parcels","e-commerce boom / logistics infrastructure","Every parcel tells the story of a thriving digital economy","Growth should march hand in hand with green packaging"]},
+      {y:2023,t:"居民健康素养水平（折线图·动态）",theme:"国民健康素养提升",dir:D_Y2_BIG, desc:"折线图：2012-2021 年我国居民健康素养水平从约 8.8% 持续上升至约 25.4%，十年间增长近两倍。寓意：健康教育成效显著。", checks:["描述十年上升趋势（起点、终点、幅度）","分析原因（健康中国战略、宣传普及、生活水平）","评论展望"], vocab:["health literacy / a ten-year climb from 8.8% to 25.4%","nearly triple over the decade","the Healthy China initiative / health campaigns","Awareness is the first prescription for wellness","Still room to grow before the 30% target"]},
+      {y:2024,t:"劳动实践课收获（柱状图·静态）",theme:"劳动教育",dir:D_Y2_BIG, desc:"柱状图：某高校劳动实践课学生主要收获调查。\"动手能力增强\"等实用收获占比最高，其次为\"加深对劳动的理解\"\"培养合作精神\"等。寓意：劳动教育育人价值凸显。", checks:["描述主要收获的占比分布","分析原因（教育改革、实践育人理念）","评论：劳动教育的意义与建议"], vocab:["labor practice courses / what students gain","hands-on skills top the list","a sense of achievement / teamwork","Sweat on the hands, wisdom in the mind","Labor education turns knowledge into capability"]},
+      {y:2025,t:"老年人日常休闲（柱状图·静态）",theme:"老年人休闲生活",dir:D_Y2_BIG, desc:"柱状图：某社区老年人主要日常休闲活动调查。散步/健身、看电视、下棋打牌、跳舞等为主要方式，其中散步类占比最高。寓意：银发一族的休闲方式与健康、社交需求。", checks:["描述主要休闲活动占比","分析原因（健康意识、社区设施、社交需求）","评论：丰富老年生活、积极老龄化"], vocab:["daily leisure activities among senior residents","strolling tops the list","active aging / recreational options for the elderly","A rich leisure life is the best companion of old age","Communities should offer more age-friendly activities"]},
+      {y:2026,t:"儿童户外活动看法（柱状图·静态）",theme:"儿童户外活动",dir:"Write an essay based on the chart below. In your writing, you should: 1) describe and interpret the chart; 2) give your comments. You should write about 150 words on the ANSWER SHEET. (15 points)", desc:"柱状图：某项关于儿童户外活动看法的调查。\"满足好奇心\"54.6%、\"促进观察力\"54.5%、\"强身健体\"37.2%、\"增强亲子互动\"33.2%。寓意：公众普遍认可户外活动对儿童成长的多重价值。", checks:["描述四项看法的占比（前两项过半）","阐释意义：户外活动益处获得广泛认同","评论：呼吁家长多带孩子走出家门"], vocab:["a survey on public views of children's outdoor activities","satisfying curiosity (54.6%) and sharpening observation (54.5%) lead the list","parent-child bonding / physical well-being","Nature is the best classroom for a curious child","Less screen time, more sunshine"]},
+    ],
+  },
+};
+
+/* ================= 信件类型表达库 ================= */
+const LT_BANK = {
+  suggestion:{name:"建议信",open:["I am writing to put forward several practical suggestions regarding ...","As a student who has benefited a lot from ..., I would like to offer a few suggestions for your consideration.","I am delighted to learn that ..., and I am writing to share some suggestions."],mid:["First and foremost, it would be advisable to ...","Furthermore, why not ... ? This would go a long way toward ...","Last but not least, ... would make a world of difference."],close:["I hope you will find these suggestions constructive.","Thank you for your time and consideration; I look forward to seeing the improvements.","I would be more than happy to discuss these ideas further."]},
+  invitation:{name:"邀请信",open:["It is my great honor to cordially invite you to ...","On behalf of ..., I am writing to invite you to ...","We are going to hold ... , and it would be our great honor to have you with us."],mid:["The event is scheduled to take place at ... on ...","Your expertise would add immense value to the occasion.","Details are as follows: ..."],close:["We would be thrilled if you could grace the occasion with your presence.","Please feel free to contact me if you have any questions.","I am looking forward to your favorable reply."]},
+  recommendation:{name:"推荐信",open:["I am writing to recommend ... to you, which I believe will not let you down.","Having ... for years, I can recommend ... without reservation.","It is my pleasure to introduce ... to you."],mid:["What makes it stand out is ...","You will be impressed by ...","It is widely acclaimed for ..."],close:["I am confident that you will find it worthwhile.","Should you need further information, please do not hesitate to contact me.","I hope you will take my recommendation into account."]},
+  notice:{name:"通知/告示",open:["（标题居中 NOTICE）Volunteers are wanted for ...","In order to ..., an activity will be organized by ...","This is to inform all students that ..."],mid:["Those interested should meet the following requirements: ...","The activity is scheduled for ... at ...","Please sign up at ... before ..."],close:["Everyone with a passion for ... is welcome.","For further information, please contact ....","落款：The Students' Union 或 Li Ming（机构优先）"]},
+  apology:{name:"道歉信",open:["I am writing to make a sincere apology for ...","Please accept my heartfelt apology for ...","I am terribly sorry that ..."],mid:["The reason for ... was that ... , which was utterly beyond my expectation.","To make up for it, I would like to ...","I fully understand the inconvenience this has caused you."],close:["I assure you that such a mistake will never occur again.","Once again, I apologize for any inconvenience caused.","Would it be possible to ... ? Thank you for your understanding."]},
+  thanks:{name:"感谢信",open:["I am writing to extend my heartfelt gratitude for ...","Words can hardly express my thanks for ...","I would like to convey my sincere appreciation for ..."],mid:["But for your ..., I could not have ...","Your kindness and patience made my ... truly rewarding.","It was incredibly thoughtful of you to ..."],close:["Thank you again from the bottom of my heart.","I sincerely hope to return your kindness in the near future.","Please do not hesitate to let me know if there is anything I can do in return."]},
+  complaint:{name:"投诉信",open:["I am writing to express my dissatisfaction with ...","I feel obliged to complain about ...","Much to my disappointment, ..."],mid:["To be specific, ... , which seriously affected ...","Despite my repeated attempts to ..., no effective solution has been offered.","I request a full refund / an immediate replacement, or ..."],close:["I would appreciate it if you could look into this matter promptly.","I trust you will attach due importance to this complaint.","I am looking forward to your prompt reply."]},
+  congratulation:{name:"祝贺信",open:["Congratulations on ...! I am really delighted to hear the good news.","It came as no surprise to learn that ...; you truly deserve it.","Please accept my warmest congratulations on ..."],mid:["Your hard work and perseverance have finally paid off.","I still remember how you ...","Such an achievement speaks volumes about your ..."],close:["Wish you even greater success in the days to come.","I look forward to celebrating with you in person.","May all your future endeavors be crowned with success."]},
+  inquiry:{name:"咨询/计划商议信",open:["I am writing to inquire about ...","Knowing that you are experienced in ..., I am writing to ask for your advice.","I would like to share my plan with you and hear your opinion."],mid:["My plan is as follows: ...","Would it be possible for you to ...?","I would appreciate any suggestions you might offer."],close:["Thank you in advance for your help.","Your input would be highly valued.","I am looking forward to your reply."]},
+  reply:{name:"回复信",open:["Thank you for your email; it is always a pleasure to hear from you.","In response to your inquiry, I would like to ...","Delighted to learn that ..., I am writing to ..."],mid:["Regarding your question about ..., ...","As for ..., I suggest that ...","You may find the following details helpful: ..."],close:["I hope the information above addresses your concerns.","Should you have any further questions, please feel free to ask.","I am looking forward to hearing from you soon."]},
+  welcome:{name:"欢迎+建议信",open:["On behalf of ..., I would like to extend our warmest welcome to you.","We are more than delighted to learn that you are coming to ...","Welcome to ...! To help you settle in, I would like to offer some suggestions."],mid:["First of all, it is advisable to ...","In addition, making the most of campus resources will ...","Moreover, joining student societies is a good way to ..."],close:["Should you need any help, please do not hesitate to contact us.","Wish you a rewarding and enjoyable stay here.","We are all looking forward to meeting you soon."]},
+  quit:{name:"辞职信",open:["I am writing to inform you of my decision to resign from my position as ...","After careful consideration, I have made up my mind to quit my job as ..."],mid:["The primary reason is that ...","Although I have learned a great deal from ..., the work does not match my career plan.","I sincerely apologize for any inconvenience my resignation may cause."],close:["Thank you for the guidance and opportunities you have given me.","I appreciate your understanding and support.","I am willing to complete the handover before I leave."]},
+  encourage:{name:"告知+鼓励信",open:["I am writing to inform you of ... and to encourage you to take part.","There will be ... , and you are warmly welcome to join us."],mid:["The details are as follows: time ..., place ...","Your participation would make a real difference, because ...","No prior experience is required—just bring your enthusiasm."],close:["Let's join hands for this meaningful cause.","I sincerely hope you can make it.","Looking forward to seeing you there."]},
+};
+
+/* ================= 官方评分档次 ================= */
+const RUBRICS = {
+  "y1-big":{full:20, rows:[
+    ["第五档 17-20","包含所有内容要点；使用丰富的语法结构和词汇；语言自然流畅，语法错误极少；有效地采用了多种衔接手法，文字连贯，层次清晰；格式和语域恰当贴切。对目标读者完全产生了预期的效果。"],
+    ["第四档 13-16","包含所有内容要点，允许漏掉 1-2 个次重点；使用较丰富的语法结构和词汇；语言基本准确，只有在试图使用较复杂结构或较高级词汇时才有个别错误；采用了适当的衔接手法，层次清晰，组织较严密。"],
+    ["第三档 9-12","漏掉一些内容要点，写了一些无关内容；语法结构较简单、词汇项目有限；有一些语法错误和拼写、标点错误，但不影响理解；采用了简单的衔接手法，内容基本连贯，层次基本清晰。"],
+    ["第二档 5-8","漏掉或未能有效阐述一些内容要点，写了一些无关内容；语法结构单调、词汇有限；有较多语法错误或拼写、标点错误，影响了读者对写作内容的理解；未采用恰当的衔接手法，内容缺少连贯性。"],
+    ["第一档 1-4","未完成试题规定的任务；明显遗漏主要内容，且有许多不相关的内容；语法项目和词汇的使用单调、重复；语法错误多，妨碍读者对内容的理解；语言不连贯。未能传达信息给读者。"],
+  ], note:"英语（一）B 节评分侧重点：信息点的完整性、文章的组织连贯性、语法结构和词汇的多样性及语言的准确性。字数明显不足 160 词酌情扣分。"},
+  "y2-big":{full:15, rows:[
+    ["第五档 13-15","包含所有内容要点；使用丰富的语法结构和词汇；语言自然流畅，语法错误极少；有效地采用了多种衔接手法，文字连贯，层次清晰；格式和语域恰当贴切。"],
+    ["第四档 10-12","包含所有内容要点，允许漏掉 1-2 个次重点；使用较丰富的语法结构和词汇；语言基本准确；采用了适当的衔接手法，层次清晰，组织较严密。"],
+    ["第三档 7-9","漏掉一些内容要点，写了一些无关内容；语法结构较简单、词汇有限；有一些语法错误，但不影响理解；采用了简单的衔接手法，内容基本连贯。"],
+    ["第二档 4-6","漏掉或未能有效阐述一些内容要点；语法结构单调、词汇有限；有较多语法错误，影响理解；未采用恰当衔接手法，内容缺少连贯性。"],
+    ["第一档 1-3","未完成试题规定的任务；明显遗漏主要内容；语法错误多，妨碍理解；语言不连贯。"],
+  ], note:"英语（二）B 节重点考查图表描述的准确性与数据解读的合理性，词数不少于 150 词。"},
+  "small":{full:10, rows:[
+    ["第五档 9-10","包含所有内容要点；使用丰富的语法结构和词汇；语言自然流畅，语法错误极少；有效地采用了多种衔接手法，文字连贯，层次清晰；格式和语域恰当贴切。"],
+    ["第四档 7-8","包含所有内容要点，允许漏掉 1-2 个次重点；使用较丰富的语法结构和词汇；语言基本准确；采用了适当的衔接手法，层次清晰；格式和语域较恰当。"],
+    ["第三档 5-6","漏掉一些内容要点；语法结构较简单、词汇有限；有一些语法错误，但不影响理解；采用了简单的衔接手法，内容基本连贯；格式和语域大致恰当。"],
+    ["第二档 3-4","漏掉或未能有效阐述一些内容要点；语法结构单调、词汇有限；有较多语法错误，影响理解；未采用恰当衔接手法，内容缺少连贯性；格式和语域不恰当。"],
+    ["第一档 1-2","未完成试题规定的任务；明显遗漏主要内容；语法错误多，妨碍理解；语言不连贯；格式和语域不恰当。"],
+  ], note:"应用文评分特别重视：格式（称呼、落款）、信息点完整性、语言得体性（语域）。词数约 100 词。"},
+};
+
+/* ================= 通用高级替换库（王江涛式升级） ================= */
+const GENERAL_UPGRADES = [
+  {key:"With the development of ...", bad:"With the development of society/economy", why:"几乎每份卷子都有这句话，阅卷老师已审美疲劳，属于典型的\"模板痕迹\"表达。", alts:["As society has advanced by leaps and bounds, ...","Amid the sweeping tide of social progress, ...","With society evolving at an unprecedented pace, ..."]},
+  {key:"more and more people", bad:"more and more people", why:"比较级堆叠是最常见的低阶表达，替换后立刻提升一个档次。", alts:["an increasing (growing) number of people","people in mounting numbers","a growing proportion of the population"]},
+  {key:"very + 普通形容词", bad:"very important", why:"very + 形容词是最朴素的强调方式，换成有分量的单词。", alts:["crucial / vital","paramount / indispensable","play a pivotal (decisive) role in ..."]},
+  {key:"I think that ...", bad:"I think", why:"口语化的观点引入，书面写作建议升级或句式化。", alts:["From my perspective, ...","As far as I am concerned, ...","I am firmly convinced that ..."]},
+  {key:"As we all know", bad:"As we all know", why:"过于口语化，且常被滥用。", alts:["It is widely acknowledged that ...","It is common knowledge that ...","Few would deny that ..."]},
+  {key:"Every coin has two sides", bad:"Every coin has two sides", why:"王江涛提醒：此句已被用滥，且与图画作文主题常不匹配。", alts:["... is a double-edged sword.","... is a mixed blessing.","Every advantage has its disadvantage; the key lies in ..."]},
+  {key:"in a word", bad:"in a word", why:"口语式总结词，作文结尾应更有分量。", alts:["In conclusion, ...","All things considered, ...","Taking all the factors into account, ..."]},
+  {key:"Nowadays", bad:"nowadays", why:"大众化开头词；并非错误，但可替换出新鲜感。", alts:["In contemporary society, ...","In this day and age, ...","At present, ..."]},
+  {key:"play an important role", bad:"play an important role", why:"可升级为更有画面感的表达。", alts:["serve as a cornerstone of ...","be central to ...","loom large in ..."]},
+  {key:"a lot of", bad:"a lot of", why:"书面语中显得单薄。", alts:["numerous / a multitude of","a wealth of / an array of","a host of"]},
+];
+
+/* ================= 检测规则 ================= */
+const SPELL_RULES = [
+  {re:/\brecieve(d|s)?\b/gi, alts:["receive / received"]},
+  {re:/\bgoverment\b/gi, alts:["government"]},
+  {re:/\benvironment\b/gi, alts:["environment（检查拼写：enviro-nment）"]},
+  {re:/\bimprotant\b/gi, alts:["important"]},
+  {re:/\binportant\b/gi, alts:["important"]},
+  {re:/\bsucessful\b/gi, alts:["successful"]},
+  {re:/\bbeacuse\b/gi, alts:["because"]},
+  {re:/\bbecuase\b/gi, alts:["because"]},
+  {re:/\bteh\b/gi, alts:["the"]},
+  {re:/\bthier\b/gi, alts:["their"]},
+  {re:/\btommorow\b/gi, alts:["tomorrow"]},
+  {re:/\bbeleive\b/gi, alts:["believe"]},
+  {re:/\boccured\b/gi, alts:["occurred"]},
+  {re:/\buntill\b/gi, alts:["until"]},
+  {re:/\bresponsable\b/gi, alts:["responsible"]},
+  {re:/\bneccessary\b/gi, alts:["necessary"]},
+  {re:/\bnecesary\b/gi, alts:["necessary"]},
+  {re:/\bsoceity\b/gi, alts:["society"]},
+  {re:/\bwich\b/gi, alts:["which"]},
+  {re:/\balot\b/gi, alts:["a lot of → 书面语建议 numerous / plenty of"]},
+  {re:/\benviroment\b/gi, alts:["environment"]},
+  {re:/\bexcercise\b/gi, alts:["exercise"]},
+  {re:/\bbenifit(s|ed|ing)?\b/gi, alts:["benefit"]},
+  {re:/\b(?:opurtunity|opprotunity)\b/gi, alts:["opportunity"]},
+  {re:/\btravle(r|d|s|ing|rs|led|lling)?\b/gi, alts:["travel"]},
+  {re:/\brecomend(ation|ations|ed|s)?\b/gi, alts:["recommend"]},
+  {re:/\bindependant\b/gi, alts:["independent"]},
+  {re:/\barguement(s)?\b/gi, alts:["argument"]},
+  {re:/\bbegining\b/gi, alts:["beginning"]},
+  {re:/\bdiffernt\b/gi, alts:["different"]},
+  {re:/\bknowlege\b/gi, alts:["knowledge"]},
+  {re:/\bacheive(d|s|ments?)?\b/gi, alts:["achieve"]},
+  {re:/\bpeolpe\b/gi, alts:["people"]},
+  {re:/\bexpecially\b/gi, alts:["especially"]},
+  {re:/\bgrammer\b/gi, alts:["grammar"]},
+  {re:/\bpronounciation\b/gi, alts:["pronunciation"]},
+  {re:/\b(?:occassion|occassionally)\b/gi, alts:["occasion / occasionally"]},
+  {re:/\bsuprise(d)?\b/gi, alts:["surprise(d)"]},
+  {re:/\btruely\b/gi, alts:["truly"]},
+  {re:/\bwritting\b/gi, alts:["writing"]},
+  {re:/\b(?:contary|contorary)\b/gi, alts:["contrary"]},
+  {re:/\bsocity\b/gi, alts:["society"]},
+  {re:/\bseperate(d|ly|s)?\b/gi, alts:["separate"]},
+  {re:/\b(?:sucess|sucessfull|successfull)\b/gi, alts:["success / successful"]},
+  {re:/\bunfortunatly\b/gi, alts:["unfortunately"]},
+  {re:/\b(?:usualy|realy|finaly|immediatly|actualy|basicaly|publically|sincerly|absolutly)\b/gi, alts:["usually / really / finally（副词拼写，双写 l）"]},
+  {re:/\bdefinately\b/gi, alts:["definitely"]},
+  {re:/\b(?:enviornment|enivronment|environmant)\b/gi, alts:["environment"]},
+  {re:/\b(?:developement|govermental)\b/gi, alts:["development / governmental"]},
+  {re:/\b(?:comunity|communty)\b/gi, alts:["community"]},
+  {re:/\bfuther\b/gi, alts:["further"]},
+  {re:/\bknowladge\b/gi, alts:["knowledge"]},
+  {re:/\bmodren\b/gi, alts:["modern"]},
+  {re:/\bmaintainance\b/gi, alts:["maintenance"]},
+  {re:/\brefered\b/gi, alts:["referred"]},
+  {re:/\brelevent\b/gi, alts:["relevant"]},
+  {re:/\brepitition\b/gi, alts:["repetition"]},
+  {re:/\b(?:responsiblity|responisibility)\b/gi, alts:["responsibility"]},
+  {re:/\b(?:strethen|strenthen|strenght)\b/gi, alts:["strengthen / strength"]},
+  {re:/\b(?:techonology|technolgy)\b/gi, alts:["technology"]},
+  {re:/\b(?:thoughtout|thoughout|throuh)\b/gi, alts:["throughout / through"]},
+  {re:/\buniversitys\b/gi, alts:["universities"]},
+  {re:/\bwhithin\b/gi, alts:["within"]},
+  {re:/\bwidespead\b/gi, alts:["widespread"]},
+  {re:/\b(?:wether|wheather)\b/gi, alts:["whether（weather 是天气）"]},
+  {re:/\b(?:essencial|essensial|esencial)\b/gi, alts:["essential"]},
+  {re:/\b(?:significanse|signifiant|signifacant)\b/gi, alts:["significance / significant"]},
+  {re:/\bpersue(d)?\b/gi, alts:["pursue"]},
+  {re:/\b(?:phenomonon|phenomenom|phenonemon)\b/gi, alts:["phenomenon"]},
+  {re:/\bprobaly\b/gi, alts:["probably"]},
+  {re:/\bpriviledge\b/gi, alts:["privilege"]},
+  {re:/\b(?:reccomend|recomended)\b/gi, alts:["recommend / recommended"]},
+  {re:/\b(?:reasearch|reserch)\b/gi, alts:["research"]},
+  {re:/\b(?:freind|frends)\b/gi, alts:["friend / friends"]},
+  {re:/\bforiegn\b/gi, alts:["foreign"]},
+  {re:/\bfourty\b/gi, alts:["forty"]},
+  {re:/\b(?:happend|happeing)\b/gi, alts:["happened / happening"]},
+  {re:/\bhieght\b/gi, alts:["height"]},
+  {re:/\bintrest(ed|ing)?\b/gi, alts:["interest"]},
+  {re:/\b(?:similiar|simmilar)\b/gi, alts:["similar"]},
+  {re:/\b(?:adn|taht|whcih|goign|nad)\b/gi, alts:["and / that / which / going（键盘错位）"]},
+  {re:/\boccurence\b/gi, alts:["occurrence"]},
+  {re:/\b(?:comittee|commite)\b/gi, alts:["committee"]},
+  {re:/\bconcious\b/gi, alts:["conscious"]},
+  {re:/\b(?:disapear|dissapear)\b/gi, alts:["disappear"]},
+  {re:/\bembarass(ed|ing)?\b/gi, alts:["embarrass"]},
+  {re:/\bexagerate(d)?\b/gi, alts:["exaggerate"]},
+  {re:/\bexcelent\b/gi, alts:["excellent"]},
+  {re:/\bfacinating\b/gi, alts:["fascinating"]},
+  {re:/\bcalender\b/gi, alts:["calendar"]},
+  {re:/\bcolledge\b/gi, alts:["college"]},
+  {re:/\bcomming\b/gi, alts:["coming"]},
+  {re:/\bcuriousity\b/gi, alts:["curiosity"]},
+  {re:/\b(?:descision|decison)\b/gi, alts:["decision"]},
+  {re:/\bgaurantee(d)?\b/gi, alts:["guarantee"]},
+  {re:/\bindispensible\b/gi, alts:["indispensable"]},
+  {re:/\b(?:libary|liberay)\b/gi, alts:["library"]},
+  {re:/\bmillenium\b/gi, alts:["millennium"]},
+  {re:/\bnoticable\b/gi, alts:["noticeable"]},
+  {re:/\bposession\b/gi, alts:["possession"]},
+  {re:/\bproffes(?:or|er)\b/gi, alts:["professor"]},
+  {re:/\bquestionaire\b/gi, alts:["questionnaire"]},
+  {re:/\bremeber\b/gi, alts:["remember"]},
+  {re:/\bresturant\b/gi, alts:["restaurant"]},
+  {re:/\bsence\b/gi, alts:["sense"]},
+  {re:/\bspeach\b/gi, alts:["speech"]},
+  {re:/\btendancy\b/gi, alts:["tendency"]},
+  {re:/\bunforseen\b/gi, alts:["unforeseen"]},
+  {re:/\bunforgetable\b/gi, alts:["unforgettable"]},
+  {re:/\b(?:usefull|carefull|helpfull|wonderfull|meanigful|beautifull)\b/gi, alts:["useful / careful / helpful 等（只保留一个 l）"]},
+  {re:/\bvehical\b/gi, alts:["vehicle"]},
+  {re:/\bvisable\b/gi, alts:["visible"]},
+  {re:/\bvolumn\b/gi, alts:["volume"]},
+  {re:/\byeild(s|ed)?\b/gi, alts:["yield"]},
+  {re:/\bcongradulations\b/gi, alts:["congratulations"]},
+  {re:/\bagressive(ly)?\b/gi, alts:["aggressive"]},
+  {re:/\baccomodate(d)?\b/gi, alts:["accommodate"]},
+  {re:/\b(?:greatful|gratful)\b/gi, alts:["grateful"]},
+  {re:/\b(?:perphaps|prehaps)\b/gi, alts:["perhaps"]},
+  {re:/\bthoes\b/gi, alts:["those"]},
+  {re:/\bexpresion\b/gi, alts:["expression"]},
+  {re:/\bopinon\b/gi, alts:["opinion"]},
+  {re:/\bimportent\b/gi, alts:["important"]},
+  {re:/\b(?:valuble|valueble)\b/gi, alts:["valuable"]},
+  {re:/\b(?:necesarry|neccesary)\b/gi, alts:["necessary"]},
+  {re:/\bexperiance(s|d)?\b/gi, alts:["experience"]},
+  {re:/\bcomparision\b/gi, alts:["comparison"]},
+  {re:/\b(?:confortable|comfortabel)\b/gi, alts:["comfortable"]},
+  {re:/\b(?:dilicious|delicous)\b/gi, alts:["delicious"]},
+  {re:/\b(?:efective|efficent|efficency)\b/gi, alts:["effective / efficient / efficiency"]},
+  {re:/\b(?:privious|previos)\b/gi, alts:["previous"]},
+  {re:/\bprobelm(s)?\b/gi, alts:["problem"]},
+  {re:/\btryed\b/gi, alts:["tried"]},
+  {re:/\b(?:unecessary|unneccessary)\b/gi, alts:["unnecessary"]},
+  {re:/\bvaroius\b/gi, alts:["various"]},
+];
+const GRAM_RULES = [
+  {re:/\ba\s+(apple|egg|idea|hour|honest|opportunity|umbrella|orange|interesting|experience)\b/gi, why:"冠词错误：以元音音素开头的词前应用 an。", alts:["an + 该词"]},
+  {re:/\ban\s+(university|useful|European|book|car|letter|chart|bar|essay)\b/gi, why:"冠词错误：这些词以辅音音素开头，应用 a。", alts:["a + 该词"]},
+  {re:/\bthere\s+(is|was)\s+(many|lots of|a lot of|several|two|three)\b/gi, why:"There be 主谓不一致：复数主语应用 there are/were。", alts:["there are/were + 复数名词"]},
+  {re:/\b(he|she|it)\s+don't\b/gi, why:"主谓一致：第三人称单数应用 doesn't。", alts:["doesn't"]},
+  {re:/\b(people|students|children|they|we)\s+(is|was|has)\b/gi, why:"主谓一致：复数主语应搭配 are/were/have。", alts:["are / were / have"]},
+  {re:/\bI\s+am\s+(agree|believe|think|know|hope)\b/gi, why:"agree 等是动词，前面不能再加 am。", alts:["I agree / I believe / I think"]},
+  {re:/\b(can|must|should|will|may)\s+to\s+[a-z]+/gi, why:"情态动词后接动词原形，不加 to。", alts:["情态动词 + 动词原形"]},
+  {re:/\bmore\s+(better|worse|easier|harder|faster|higher|bigger|cheaper)\b/gi, why:"双重比较级：比较级前不能再加 more。", alts:["better / easier（去掉 more）","far better / much easier"]},
+  {re:/\bvery\s+very\b/gi, why:"very 重复使用，力度反而变弱。", alts:["extremely / exceedingly","直接换成更高一级的形容词"]},
+  {re:/\bdiscuss\s+about\b/gi, why:"discuss 是及物动词，后不加 about。", alts:["discuss sth.","talk about sth."]},
+  {re:/\blearn\s+knowledge\b/gi, why:"典型中式英语：knowledge 不与 learn 搭配。", alts:["acquire knowledge","gain a solid grounding in ...","grasp the knowledge of ..."]},
+  {re:/\baccording\s+to\s+me\b/gi, why:"中式英语：according to 后不能接\"我\"。", alts:["in my view","from my perspective"]},
+  {re:/\beach\s+peoples?\b/gi, why:"搭配错误。", alts:["every person","each individual"]},
+  {re:/\bin\s+the\s+society\b/gi, why:"泛指\"社会\"时 society 前不加 the。", alts:["in society"]},
+  {re:/\breturn\s+back\b/gi, why:"return 已含\"回\"义，back 语义重复。", alts:["return (it)"]},
+  {re:/\bpay\s+attention\s+on\b/gi, why:"固定搭配为 pay attention to。", alts:["pay attention to"]},
+  {re:/\bmake\s+a\s+research\b/gi, why:"research 的搭配动词是 do / conduct / carry out。", alts:["conduct research","carry out a study"]},
+  {re:/\bopen\s+(the\s+)?(TV|light|computer)\b/gi, why:"中式英语：开关电器用 turn on/off。", alts:["turn on/off the TV"]},
+  {re:/\bmeet\s+(difficulties|problems|trouble)\b/gi, why:"搭配不当。", alts:["encounter difficulties","come across problems","run into obstacles"]},
+  {re:/\s+[,.;!?]/g, why:"标点前不应有空格。", alts:["标点紧贴前词，标点后空一格"]},
+  {re:/\b(the|a)\s+\1\b/gi, why:"冠词重复。", alts:["只保留一个冠词"]},
+  {re:/\bemphasize\s+on\b/gi, why:"emphasize 是及物动词；或改用 lay emphasis on。", alts:["emphasize sth.","lay emphasis on sth."]},
+  /* ---- 时态类 ---- */
+  {re:/\bin (?:19|20)\d\d\b[^.!?]{0,60}?\b(is|are|increase|increases|rise|rises|reach|reaches|become|becomes|grow|grows)\b/gi, why:"时态错误：描述过去年份（图表数据/往事）应用过去时 was/increased/reached。", alts:["In 2010, the number was ...","In 2010, the figure stood at ...","The number for 2010 reached ..."]},
+  {re:/\bfrom (?:19|20)\d\d to (?:19|20)\d\d\b[^.!?]{0,60}?\b(is|are|increase|increases|rise|rises|grow|grows)\b/gi, why:"时态错误：描述过去年份区间的数据变化应用过去时。", alts:["increased / rose / grew","climbed steadily","witnessed a steady rise"]},
+  {re:/\blast (?:year|month|week|night|weekend|century|decade)\b[^.!?]{0,50}?\b(is|are|do|does|go|goes|see|visit|play|watch|buy|take|come|make|spend|travel|meet|pay|live|work|start|begin|find|feel|become)\b/gi, why:"时态错误：last year/month 等过去时间状语应搭配过去式。", alts:["went / saw / visited 等过去式","It was not until last year that ..."]},
+  {re:/\b(?:years?|months?|weeks?|days?|decades?) ago\b[^.!?]{0,50}?\b(is|are|has|have|do|does)\b/gi, why:"时态错误：…ago 是明确的过去时间状语，句子应用一般过去时。", alts:["was / were / did","had + 过去分词（更早过去）"]},
+  {re:/\bin the past (?:few|several|two|three|four|five|ten|many|couple of )? ?years?\b[^.!?]{0,70}?\b(was|were|did|increased|rose|grew|fell|declined|changed|became|dropped|emerged|appeared)\b/gi, why:"时态错误：in the past few years（近几年来）应搭配现在完成时。", alts:["has risen / have grown","has witnessed a remarkable change","has undergone dramatic changes"]},
+  {re:/\bsince (?:19|20)\d\d\b[^.!?]{0,60}?\b(was|were|did|increased|rose|grew|fell|declined|became|changed|dropped)\b/gi, why:"时态错误：since + 过去时间点应搭配现在完成时。", alts:["has risen / have grown","has climbed steadily","has more than doubled"]},
+  {re:/\b(?:said|told)\b[^.!?]{0,60}?\b(will|can)\b/gi, why:"时态呼应：间接引语主句为过去时，从句应用 would/could（客观真理除外）。", alts:["would / could"]},
+  {re:/\bwhen (?:i|he|she|we|they|people) (?:was|were)\b[^.!?]{0,60}?\b(like|likes|love|play|go|watch|study|enjoy|take|make|live|think|believe|have|spend)\b/gi, why:"时态不一致：when I was ... 为过去场景，主句动词也应用过去式。", alts:["liked / played / watched 等过去式"]},
+  {re:/\b(?:have|has|had)\s+(?:went|came|saw|took|wrote|ate|did|got|gave|ran|swam|drank|forgot|spoke|knew|grew|threw|drove|chose|broke|fell|was|were)\b/gi, why:"完成时错误：have/has/had 后应接过去分词（gone/come/taken 等）。", alts:["have gone / have taken 等过去分词","had done / had seen"]},
+  {re:/\b(?:did\s+not|didn't)\s+(?:went|came|saw|took|wrote|ate|got|gave|ran|drank|drove|chose|broke|fell|was|were|watched|played|studied|visited|finished|decided)\b/gi, why:"助动词 did 已表过去，其后动词用原形。", alts:["did not go / did not take 等原形"]},
+  {re:/\b(?:will|would|can|could|should|must|may|might)\s+(?:went|came|saw|took|wrote|ate|got|gave|ran|drank|drove|chose|broke|fell|was|were)\b/gi, why:"时态错误：情态动词后应接动词原形。", alts:["will go / can take 等原形"]},
+  {re:/\bif i (?:was|am)\b/gi, why:"虚拟语气：If I were ...（be 动词一律用 were）。", alts:["If I were ...","Were I ...（倒装虚拟）"]},
+  {re:/\bhigh time\b[^.!?]{0,40}?\b(must|should|can|will|may)\b/gi, why:"虚拟语气：It is high time (that) 后接过去式，不加情态动词。", alts:["It is high time we acted ...","It is high time for us to act"]},
+  {re:/\b(?:nowadays|currently|at present|in today's society|in modern society)\b[^.!?]{0,60}?\b(became|was|were|did)\b/gi, why:"时态不一致：nowadays 等现在时间状语应搭配现在时态。", alts:["become / are / do 现在时"]},
+  {re:/\bwill going to\b/gi, why:"时态结构混用：will 后接原形。", alts:["will do","am going to do"]},
+  /* ---- 时态类（第二批） ---- */
+  {re:/\b(?:was|were)\s+(go|come|do|make|take|get|give|see|watch|visit|play|study|work|live|travel|buy|spend|increase|rise|fall|grow)\b/gi, why:"时态/结构错误：be + 动词原形不成立；应用过去式、过去进行时或被动式。", alts:["went / made（一般过去时）","was going / were making（过去进行时）"]},
+  {re:/\b(?:am|is|are)\s+(went|came|saw|took|made|did|got|gave|ran|knew|grew|broke|fell|chose|drove|spoke|wrote|ate|rose)\b/gi, why:"结构错误：be 动词后不能直接接过去式，应用过去分词/现在分词或去掉 be 动词。", alts:["is rising / are made（正确形式）","went / made（去掉 be 动词）"]},
+  {re:/\bthere will have\b/gi, why:"There be 句型：将来时应为 there will be。", alts:["there will be","there is going to be"]},
+  {re:/\b(?:is|are|was|were)\s+(showed|wrote|broke|drove|chose|rose|grew|fell|saw|took|gave|went|came|ate|drank|swam|ran|knew|threw|forgot|spoke)\b/gi, why:"被动语态错误：be + 过去分词（shown/written/taken 等）。", alts:["is shown / was written（用过去分词）"]},
+  {re:/\bin recent years\b[^.!?]{0,60}?\b(?<!\b(?:has|have|had)\s)(become|grow|increase|rise|fall|change|attract|draw|play|emerge|appear|witness|decline)\b/gi, why:"时态错误：in recent years 应搭配现在完成时 have/has + 过去分词。", alts:["have become / has grown","have witnessed a dramatic change"]},
+  {re:/\bsince then\b[^.!?]{0,60}?\b(?<!\b(?:has|have|had)\s)(rose|fell|grew|increased|decreased|became|changed|went|came|made|took|saw|attracted|emerged)\b/gi, why:"时态错误：since then 应搭配现在完成时 has/have + 过去分词。", alts:["has risen / have grown","has undergone a profound change"]},
+  {re:/\b(?:does not|doesn't|do not|don't)\s+(goes|does|makes|takes|gets|gives|shows|says|thinks|believes|becomes|needs|wants|means|provides|knows|tells|asks|works|studies|likes|loves|helps|learns|teaches|brings|keeps|stays|remains|changes|lives|plays|comes|spends|finds|prefers|enjoys|has|looks|seems)\b/gi, why:"动词形态：助动词 do/does/did 后接动词原形，不加 -s。", alts:["doesn't go / don't make（用原形）"]},
+  {re:/\bhigh time\b[^.!?]{0,40}?\b(take|go|act|change|start|begin|make|pay|put|protect|reduce)\b/gi, why:"虚拟语气：It is high time (that) 后接过去式动词。", alts:["It is high time we acted / took action","It is high time for us to act"]},
+  {re:/\bby (?:the end of )?(?:19|20)\d\d\b[^.!?]{0,60}?\b(is|are|reach|arrive|increase|rise|grow|become)\b(?!\s+(?:expected|projected|estimated|forecast|scheduled|due|predicted|planned|likely))/gi, why:"时态错误：by + 过去时间点应搭配过去完成时或一般过去时。", alts:["had reached / was","By the end of 2020, the figure had doubled."]},
+  {re:/\b(?:he|she|it)\s+have\b/gi, why:"主谓一致：第三人称单数应用 has。", alts:["has"]},
+  {re:/\b(\w{3,})\s+\1\b/gi, why:"疑似单词重复（同一个词连打两次）。", alts:["删除重复的单词"]},
+  /* ---- 主谓一致 ---- */
+  {re:/\b(?:people|students|children|parents|workers|consumers|residents|visitors|tourists|families|graduates|teenagers|kids|customers|employees|netizens)\s+(?:is|was|has|does)\b/gi, why:"主谓一致：复数名词应搭配 are/were/have/do。", alts:["are / were / have / do"]},
+  {re:/\b(?:people|students|children|they|we|these|those|parents|consumers|graduates|teenagers)\s+(thinks|likes|wants|needs|goes|says|comes|makes|takes|gets|knows|believes|prefers|plays|watches|studies)\b/gi, why:"主谓一致：复数主语后的动词不加 -s。", alts:["think / like / go（去掉 -s）"]},
+  {re:/\b(?:many|most|several|few)\s+(?!information|knowledge|advice|progress|equipment|research|evidence|money|water|time|work|traffic)[a-z]+\s+(?:is|was|has)\b/gi, why:"主谓一致：many/most/several/few + 复数名词应用 are/were/have。", alts:["are / were / have"]},
+  {re:/\bthe (?:number|percentage|proportion|rate|figure|amount) of\b[^.!?]{0,50}?\b(are|were)\b/gi, why:"主谓一致：the number of ... 是单数概念，应用 is/was。", alts:["is / was","stands at / stood at ..."]},
+  {re:/\ba number of\s+[a-z]+\s+(?:is|was|has)\b/gi, why:"主谓一致：a number of（许多）后接复数动词；the number of 才用单数。", alts:["are / were / have"]},
+  {re:/\b(?:everyone|everybody|someone|somebody|anyone|anybody|nobody|no one|each of (?:us|them|you))\s+(?:are|were|have|do|don't)\b/gi, why:"主谓一致：everyone/nobody 等不定代词为单数。", alts:["is / was / has / does"]},
+  {re:/\bone of (?:the|my|our|these|those)?\s?[a-z ]{0,25}?(thing|reason|factor|problem|advantage|disadvantage|aspect|benefit|way|method|feature|cause|result|effect|choice|part)\b(?![s'])/gi, why:"主谓/名词数错误：one of 后必须接复数名词。", alts:["one of the most important things","one of the main reasons（加 -s）"]},
+  {re:/\b(?:the|this|that|a)\s+(?:chart|graph|table|picture|drawing|cartoon|figure|bar|pie|line)\s+(show|describe|illustrate|indicate|reveal|display|compare|present|give|tell|suggest|demonstrate|reflect|convey|summarize|list|record)\b/gi, why:"主谓一致：图表名词作主语（单数），动词需加 -s。", alts:["shows / illustrates / indicates（加 -s）","As is shown in the chart, ..."]},
+  {re:/\b(?:the number|the figure|the percentage|the proportion|the rate|the price|the population|the amount)\s+(increase|decrease|rise|fall|drop|grow|change|decline|climb|reach|account|double|fluctuate)\b/gi, why:"主谓一致：单数主语（the number 等）后的动词需加 -s。", alts:["increases / rises / reaches（加 -s）"]},
+  {re:/(?<!\b(?:let|make|watch|see|hear|feel|help|does|do|did|don't|doesn't|didn't|will|would|can|could|shall|should|must|may|might)\s)\b(he|she|it|everyone|everybody|someone|somebody|anyone|anybody|nobody|no one|each)\s+(go|come|make|take|get|give|show|say|think|believe|find|become|seem|look|need|want|mean|provide|indicate|reveal|reflect|suggest|represent|illustrate|demonstrate|display|present|describe|depict|convey|prove|require|prefer|enjoy|spend|hold|keep|stay|remain|change|increase|decrease|rise|fall|grow|drop|account|play|live|work|study|learn|teach|help|bring|tell|ask|know|like|love|hope|agree|decide|feel|buy|walk|sit|stand|speak|write|read|drive|eat|win|lose|choose|realize|notice|belong|matter)\b/gi, why:"主谓一致（三单）：第三人称单数主语后的动词需加 -s/-es。", alts:["goes / makes / shows（加 -s）","It goes without saying that ..."]},
+  {re:/\b(?:the|this|that|a|an)\s+(?:phenomenon|trend|change|difference|increase|decrease|activity|survey|report|result|purpose|reason|factor|problem|issue|case|example|story|article|passage|letter|email|notice|announcement|speech|contest|meeting|event|program|project|plan|policy|law|rule|regulation|company|corporation|firm|brand|product|country|nation|city|community|family|school|university|college|library|government|society|economy|industry|market|culture|tradition|value|belief|idea|notion|concept|attitude|opinion|view|situation)\s+(show|indicate|reveal|reflect|suggest|illustrate|demonstrate|display|present|describe|depict|convey|prove|confirm|require|need|deserve|attract|draw|cause|lead|continue|become|seem|remain|bring|play)\b/gi, why:"主谓一致（三单）：单数名词主语后的动词需加 -s/-es。", alts:["shows / indicates / suggests（加 -s）"]},
+  {re:/\b(?:boy|girl|man|woman|person|student|child|friend|colleague|candidate|professor|teacher|father|mother|parent|player|reader|writer|author|speaker|visitor|tourist|customer|consumer)\s+who\s+(go|come|make|take|get|give|show|say|think|believe|find|become|seem|need|want|mean|provide|prefer|enjoy|spend|hold|keep|stay|remain|change|play|live|work|study|learn|teach|help|bring|tell|ask|know|have|do)\b/gi, why:"主谓一致（三单）：先行词为单数名词时，who 后的动词需加 -s。", alts:["who goes / who makes（加 -s）"]},
+  {re:/\b(?:adults|workers|netizens|citizens|viewers|users|players|readers|speakers|employees|residents|people|students|children|they|we|these|those|parents|consumers|graduates|teenagers|families|customers)\s+(shows|indicates|reveals|illustrates|demonstrates|suggests|spends|finds|enjoys|provides|holds|keeps|remains|stays|brings|tells|asks|works|lives|means)\b/gi, why:"主谓一致：复数主语后的动词不加 -s。", alts:["去掉动词词尾的 -s"]},
+  {re:/\bper\s?cent(?:age)? of\s+(?:people|students|children|adults|consumers|respondents|visitors|women|men|teenagers|employees|residents|families|graduates|customers)\s+(?:is|was|has)\b/gi, why:"主谓一致：percent of + 复数名词，谓语用复数。", alts:["are / were / have"]},
+  {re:/\bas is (show|see|depict|illustrate|mention|demonstrate|indicate|present|display)\b/gi, why:"被动结构错误：应为 as is shown / seen（过去分词）。", alts:["As is shown / depicted in the picture, ...","As can be seen from the chart, ...","As is vividly portrayed, ..."]},
+  {re:/\bthere (?:has|have)\b(?! been)/gi, why:"There be 句型：存在句用 there is/are（完成式为 there has/have been）。", alts:["there is / there are","there has been / there have been"]},
+  {re:/\bthere (?:are|were|have been|had been) no doubt\b/gi, why:"主谓一致：doubt 此处为单数。", alts:["there is no doubt that ...","beyond doubt / undoubtedly"]},
+  /* ---- 动词搭配 ---- */
+  {re:/\blook(?:s|ed|ing)? forward to\s+(hear|see|meet|visit|receive|watch|talk|join|come|go|work|study|help|attend|reply)\b/gi, why:"固定搭配：look forward to 中的 to 是介词，后接动名词。", alts:["look forward to hearing from you","look forward to meeting you","I await your reply with keen interest."]},
+  {re:/\b(?:enjoy\w*|avoid\w*|finish\w*|suggest\w*|consider\w*|imagine\w*|risk\w*|admit\w*|deny\w*|practic\w*|keep\w*)\s+to\s+(go|do|make|take|get|study|learn|play|read|write|help|visit|watch|become|join|buy|travel|communicate|solve|improve|see|hear|talk|meet|send|find|know|understand|finish|obtain|protect)\b/gi, why:"固定搭配：enjoy/avoid/finish/suggest 等后接动名词 doing，不接 to do。", alts:["enjoy doing / avoid doing","take pleasure in doing","be committed to doing"]},
+  {re:/\bspen(?:d|t|ds|ding)\s+(?:[a-z]+\s+){0,3}?(?:time|money|energy|effort)\s+to\s+[a-z]+/gi, why:"固定搭配：spend time/money (in) doing sth。", alts:["spend time doing","devote time to doing","invest time in doing"]},
+  {re:/\b(?:have|has|had)\s+(?:difficulty|difficulties|problem|problems|trouble)\s+to\s+[a-z]+/gi, why:"固定搭配：have difficulty (in) doing sth。", alts:["have difficulty doing","struggle to do","find it hard to do"]},
+  {re:/\b(?:make|makes|made|let|lets)\s+(?:us|them|him|her|me|you|people|students|children|everyone)\s+to\s+[a-z]+/gi, why:"固定搭配：make/let sb do（不带 to）。", alts:["make us do / let him go（去掉 to）","enable us to do（换用 enable）"]},
+  {re:/\bable to can\b|\bcan able to\b/gi, why:"冗余结构：can 与 be able to 只能保留一个。", alts:["can","be able to","be capable of doing"]},
+  {re:/\bused to\s+(getting|going|doing|studying|playing|reading|waking|living|working)\b/gi, why:"易混结构：used to do（过去常常）与 be used to doing（习惯于）不同。", alts:["used to do（过去常常）","am used to doing（现在习惯于）"]},
+  {re:/\binstead of\s+(go|do|make|take|study|learn|play|read|write|help|visit|watch|buy|travel|communicate|solve|improve|spend|sit)\b/gi, why:"instead of 中的 of 是介词，后接动名词。", alts:["instead of doing","rather than doing"]},
+  {re:/\bsucceed(?:ed|s)? to\b/gi, why:"固定搭配：succeed in doing sth。", alts:["succeed in doing","manage to do","make it to ..."]},
+  {re:/\bbusy to\s+[a-z]+/gi, why:"固定搭配：be busy doing sth。", alts:["busy doing","be occupied with sth."]},
+  {re:/\bgive(?:s|n|gave)? up to\s+(study|learn|play|read|write|watch|travel|communicate|improve|exercise|practice)\b/gi, why:"固定搭配：give up doing sth。", alts:["give up doing","quit doing"]},
+  {re:/\b(?:discuss|explain|mention|describe|analyze|analyse|study|research)(?:ed|es|d|s|ing)?\s+about\b/gi, why:"及物动词后不加 about。", alts:["discuss / explain sth. 直接接宾语","talk about / speak about sth."]},
+  {re:/\breason (?:is|was) because\b/gi, why:"中式结构：reason 与 because 语义重复。", alts:["The reason is that ...","... because ...（二选一）"]},
+  /* ---- 不可数名词与限定词 ---- */
+  {re:/\b(?:a|an|many|few|these|those|several)\s+(advice|information|knowledge|progress|furniture|equipment|homework|research|evidence|pollution|money|work)\b/gi, why:"不可数名词：不能直接加 a/many 等限定词。", alts:["a piece of advice / much information","a great deal of research","a wealth of knowledge"]},
+  {re:/\b(advice|information|knowledge|progress|furniture|equipment|homework|evidence|pollution)s\b/gi, why:"不可数名词无复数形式。", alts:["advice / information / knowledge（不可数）"]},
+  {re:/\bmuch\s+(people|students|children|books|problems|consumers|citizens|things|ways|methods|activities|jobs|chances|opportunities|teenagers|adults|families)\b/gi, why:"限定词误用：可数复数前应用 many。", alts:["many / numerous","a large number of","a host of"]},
+  {re:/\bmany\s+(information|advice|knowledge|progress|equipment|research|evidence|pollution|money|traffic)\b/gi, why:"限定词误用：不可数名词前应用 much。", alts:["much / a great deal of","a large amount of"]},
+  {re:/\ba people\b/gi, why:"people 是集合复数名词。", alts:["a person","an individual"]},
+  /* ---- 动词形态与易混词 ---- */
+  {re:/\b(?:costed|feeled|goed|buyed|catched|thinked|writed|eated|sleeped|weared|runned|swimmed|teached|drived|choosed|winned|bringed|hurted|sayed|readed)\b/gi, why:"不规则动词：过去式/过去分词形式错误。", alts:["cost / felt / bought / caught / taught / drove 等正确形式","have gone / have written 等过去分词"]},
+  {re:/\bpeoples\b/gi, why:"people 本身即复数（peoples 仅指\"多个民族\"）。", alts:["people","individuals / the public"]},
+  {re:/\b(?:childrens|womens|mens|datas|womans)\b/gi, why:"不规则复数：children/women/men/data 已是复数。", alts:["children / women / men / data"]},
+  {re:/\beffect(?:s|ed)?\s+(?:the|our|their|his|her|its|people|students|children|society|environment|health|economy|lives|growth|development)\b/gi, why:"用词混淆：effect 是名词（影响），动词应用 affect。", alts:["affect the environment","have an effect on ...","exert an influence on ..."]},
+  {re:/\b(?:numbers?|figures?|prices?|rates?|sales|incomes?|temperatures?|population|unemployment|percentage|proportion|demand|production)\s+(?:raise|raises)\b/gi, why:"用词混淆：价格/数量自身\"上升\"用不及物动词 rise。", alts:["rise / rose","go up / climb","see an upward trend"]},
+  {re:/\b(?:numbers?|figures?|prices?|rates?|sales|population|percentage|proportion)\s+raised\b/gi, why:"用词混淆：raise 是及物动词（需宾语）；图表中\"上升\"应用 rose（被动语态 were raised 除外）。", alts:["rose","climbed / went up"]},
+  {re:/\bvery (like|love|enjoy|want|need|hope)\b/gi, why:"副词误用：动词前不能用 very 修饰。", alts:["really like / truly enjoy","like ... very much","have a great fondness for ..."]},
+  /* ---- 连词与介词 ---- */
+  {re:/\bthe same (with|like)\b/gi, why:"固定搭配：the same as。", alts:["the same as"]},
+  {re:/\bdifferent (with|to)\b/gi, why:"固定搭配：be different from。", alts:["different from"]},
+  {re:/\bbetween\s+[a-z0-9]+\s+(or|with)\b/gi, why:"固定搭配：between A and B。", alts:["between ... and ..."]},
+  {re:/\bon the contrast\b/gi, why:"固定搭配混淆。", alts:["on the contrary","by contrast / in contrast","conversely"]},
+  {re:/\bin my opinion,?\s?,?\s*i think\b/gi, why:"语义重复：in my opinion 与 I think 只留其一。", alts:["In my opinion, ...","I think that ...","As far as I am concerned, ..."]},
+  {re:/\b(?:despite|in spite of)\s+[a-z]+\s+(?:is|are|was|were|have|has|will|can|do|does)\b/gi, why:"介词误用：despite 后接名词/动名词，不能接从句。", alts:["Despite the fact that ...","Although + 句子","Despite being ..."]},
+  {re:/\b(?:is|are|was|were)\s+consisted of\b/gi, why:"consist of 无被动式。", alts:["consists of","is composed of / is made up of"]},
+  {re:/\b(?:is|are|was|were|am)\s+belonged to\b/gi, why:"belong to 无被动式。", alts:["belongs to"]},
+  {re:/\b(?:is|are|was|were)\s+happened\b/gi, why:"happen 不及物，无被动式。", alts:["happened / occurred"]},
+  {re:/\b(?:am|is|are|was|were)\s+agree\b/gi, why:"agree 是动词，不搭配 be 动词。", alts:["agree / agreed","I cannot agree more"]},
+  {re:/\b(?:cannot|can not)\s+to\b/gi, why:"情态动词后接动词原形。", alts:["cannot + 原形"]},
+  {re:/\bmake friend with\b/gi, why:"固定搭配：make friends with。", alts:["make friends with","build a friendship with"]},
+  {re:/\b(?:am|is|are|was|were)\s+concern about\b/gi, why:"固定搭配：be concerned about。", alts:["concerned about","worried about"]},
+  {re:/\b(?:people|students|children|they|we|it|he|she|consumers|parents|graduates|teenagers)\s+lack(?:s|ed)? of\b/gi, why:"lack 是及物动词：lack sth；名词搭配才用 a lack of。", alts:["lack sth.","have a lack of sth.","be lacking in sth."]},
+  {re:/\b(?:am|is|are|was|were|be)\s+lack of\b/gi, why:"搭配错误：应为 be lacking in 或直接用 lack。", alts:["lack sth.","be lacking in sth.","suffer from a lack of sth."]},
+  {re:/\bmore (superior|inferior|preferable|perfect)\b|\bmost (perfect|favorite)\b/gi, why:"该词本身已含比较级/最高级含义。", alts:["superior to（去掉 more）","perfect（去掉 most）"]},
+  {re:/\bmost best\b/gi, why:"双重最高级。", alts:["the best","second to none"]},
+  {re:/\bmarry(?:ied|s)? with\b/gi, why:"固定搭配：be married to（不带 with）。", alts:["be married to","marry sb. directly"]},
+  /* ---- 中式英语与高频搭配 ---- */
+  {re:/\b(?:life levels?|levels? of (?:people'?s? )?life)\b/gi, why:"中式英语：\"生活水平\"的地道说法。", alts:["living standards","quality of life"]},
+  {re:/\bwith (?:the )?(society|economy|technology|science|internet|world|environment|education) develop(s|ed)\b/gi, why:"结构错误：with 复合结构应为 with + 名词 + doing，或改用 as 引导从句。", alts:["with the society developing","as the society develops","with the development of the society"]},
+  {re:/\bwith time (?:goes|went) by\b/gi, why:"结构错误：应为 With time going by 或 As time goes by。", alts:["As time goes by","With time passing by"]},
+  {re:/\b(?:beyond|out of) (?:imagine|expect)\b/gi, why:"词性错误：介词后应接名词。", alts:["beyond imagination","out of expectation / beyond expectation"]},
+  {re:/\bto some extents\b/gi, why:"固定搭配：to some extent（用单数）。", alts:["to some extent","to a certain degree"]},
+  {re:/\bin (some|many|large|great|certain) degrees?\b/gi, why:"固定搭配：应用 to ... degree（不用 in）。", alts:["to some degree","to a large degree"]},
+  {re:/\bas far as i am concern\b/gi, why:"固定搭配：as far as I am concerned。", alts:["as far as I am concerned","from my perspective"]},
+  {re:/\battach(?:es|ed)? importance (on|at)\b/gi, why:"固定搭配：attach importance to。", alts:["attach importance to","place a premium on"]},
+  {re:/\bplay(?:ing)? (?:the )?(?:mobile|cell)? ?phones?\b/gi, why:"中式英语：\"玩手机\"的地道表达。", alts:["spend time on their phones","be glued to their phones","scroll through their phones"]},
+  {re:/\bthe both\b/gi, why:"冠词误用：both 前不加 the。", alts:["both (of them)"]},
+  {re:/\b(?:do|make)\s+a\s+conclusion\b/gi, why:"搭配错误。", alts:["draw a conclusion","reach a conclusion","come to a conclusion"]},
+  {re:/\bthere (?:are|were)\s+(?:still\s+)?(?!a lot|a number|a couple|a few|a variety|a series|a wide|a large|a great)(?:a|an|much|little)\b/gi, why:"数的一致：a/an/much/little 后为单数，应用 there is/was。", alts:["there is still room for improvement","there is little doubt that ..."]},
+  {re:/\bthere (?:are|were)\s+(?:still\s+)?(?:room|doubt|time|money|space|evidence|information|advice|progress|hope|need)\b/gi, why:"数的一致：room/doubt/time 等不可数名词作主语，应用 there is/was。", alts:["there is still room for improvement","there is no doubt that ...","there is a pressing need for ..."]},
+  {re:/\b(chinese|english|american|british|german|french|japanese|european|asian|western)\s+(people|government|society|culture|language|students|consumers|economy|citizens|cities|market|companies)\b/g, why:"国籍/地域形容词首字母应大写（如 Chinese、English）。", alts:["Chinese people / English culture（首字母大写）"]},
+  {re:/\bi\s+(?:am|think|believe|was|were|have|had|do|did|want|like|prefer|hope|agree|remember|feel|know|can|will|would|should|see|found|learned|learnt|went|met|took|made)\b/g, why:"代词 I 任何时候都要大写。", alts:["I + 动词（大写 I）"]},
+];
+function connIssues(text){
+  const out=[];
+  const sents=text.split(/(?<=[.!?])\s+/);
+  sents.forEach(s=>{
+    if(/\balthough\b/i.test(s)&&/\bbut\b/i.test(s)) out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"中文\"虽然…但是…\"不能直译为 although…but…，英语一句只用一个连词。", alts:["Although A, B.","A; however, B.","Despite A, B."]});
+    if(/\bbecause\b/i.test(s)&&/\bso\b/i.test(s)) out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"because 与 so 不能同时出现在一个句子中。", alts:["Because A, B.","A, so B.","A; therefore, B."]});
+    if(/\bnot only\b/i.test(s)&&/\band\b/i.test(s)&&!/\bbut also\b/i.test(s)) out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"并列连词搭配：not only ... but also ...。", alts:["not only ... but also ...","not merely ... but ... as well"]});
+    if(/\bif\b/i.test(s)&&/\bwill\b/i.test(s)&&!/\b(know|wonder|wondered|ask|asked|doubt|sure|uncertain|tell|told|see|said|believe|think|clear|whether)\b/i.test(s))
+      out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"时态/结构错误：if 引导的条件状语从句用一般现在时表将来，不用 will（if 作\"是否\"的宾语从句除外）。", alts:["If it rains, we will stay at home.","Should + 主语 + 动词原形（倒装条件句）"]});
+    if(/\b(yesterday|last (?:year|month|week|night|weekend)|(?:two|three|several|many)? ?(?:years?|months?|weeks?|days?) ago)\b/i.test(s)&&/\b(?:have|has)\b/i.test(s)&&!/\bhave to\b/i.test(s)&&!/\b(?:since|for|so far|recently|recent|in recent|over the|during the|up to|already)\b/i.test(s))
+      out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"时态错误：现在完成时不能与 yesterday / last year / ...ago 等明确的过去时间状语连用，应改为一般过去时。", alts:["I visited ... yesterday.（一般过去时）","It has been + 时间 + since ...（保留完成时的改法）"]});
+    if(/\b(?:said|told|asked|wrote|replied|mentioned|explained)\b/i.test(s)&&/\bis\b/i.test(s)&&!/\b(is|was) said to\b/i.test(s)&&!/\bthat is\b/i.test(s))
+      out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"时态呼应：间接引语主句为过去时，从句 be 动词应改为 was/were。", alts:["said that ... was ...","told me that ... were ..."]});
+    if(/\b(?:now|today|nowadays|currently|these years|in recent years)\b/i.test(s)&&/\b(?:was|were)\b/i.test(s)&&!/\bused to\b/i.test(s))
+      out.push({frag:s.trim().slice(0,70), kind:"grammar", why:"时态不一致：句中出现 now/today 等现在时间标志，谓语却用了过去时 was/were。", alts:["改为 is/are 等现在时","若确指过去，删去 now/today 等时间标志"]});
+  });
+  return out;
+}
+const CLICHES = [
+  {re:/\bwith\s+the\s+development\s+of\b/gi, key:"With the development of ..."},
+  {re:/\bmore\s+and\s+more\s+(people|students|persons|individuals|consumers|citizens)\b/gi, key:"more and more people"},
+  {re:/\bas\s+we\s+all\s+know\b/gi, key:"As we all know"},
+  {re:/\bevery\s+coin\s+has\s+two\s+sides\b/gi, key:"Every coin has two sides"},
+  {re:/\bin\s+a\s+word\b/gi, key:"in a word"},
+  {re:/\bi\s+think\s+that\b/gi, key:"I think that ..."},
+  {re:/\bvery\s+(important|good|bad|big|many|much|popular)\b/gi, key:"very + 普通形容词"},
+  {re:/\ba\s+lot\s+of\b/gi, key:"a lot of"},
+  {re:/\bplay(s)?\s+an?\s+important\s+role\b/gi, key:"play an important role"},
+  {re:/\bnowadays,?\b/gi, key:"Nowadays"},
+];
+const GOOD_RE = [
+  {re:/\bonly\s+(in\s+this\s+way|by\s+|through\s+)[^.]{0,70}?\b(can|will|could|would)\b/i, label:"倒装/强调句式（Only in this way can we ...）"},
+  {re:/\bnot\s+only\b[^.]{0,90}?\bbut\s+also\b/i, label:"Not only ... but also 并列结构"},
+  {re:/\bit\s+is\s+[^,.]{2,40}\s+that\b/i, label:"强调句型（It is ... that ...）"},
+  {re:/\b(were|had)\s+\w+\s*,?\s*\bwould\b/i, label:"虚拟语气"},
+  {re:/\bso\s+[^.]{2,40}?\bthat\b/i, label:"so ... that 结果状语从句"},
+  {re:/\bas\s+is\s+(vividly|shown|depicted)\b/i, label:"图表/图画描述经典句（As is vividly shown ...）"},
+  {re:/\b(the\s+)?(bar\s+chart|pie\s+chart|line\s+(graph|chart)|table|drawing|cartoon|picture)\b/i, label:"准确指称图表/图画"},
+];
+const LINKERS = ["however","moreover","furthermore","in addition","consequently","therefore","nevertheless","for instance","for example","to begin with","first and foremost","last but not least","by contrast","in contrast","as a result","on the one hand","on the other hand","in conclusion","to sum up","what is more","admittedly"];
+
+/* ================= 交互状态 ================= */
+let exam="y1", type="small";
+const segExam=document.getElementById("segExam");
+const segType=document.getElementById("segType");
+const yearSel=document.getElementById("yearSel");
+const essayEl=document.getElementById("essay");
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function fillYears(){
+  yearSel.innerHTML=DB[exam][type].map(o=>`<option value="${o.y}">${o.y} 年 · ${o.t}</option>`).join("");
+}
+function cur(){const y=+yearSel.value; return DB[exam][type].find(o=>o.y===y);}
+function curRubric(){return type==="big" ? RUBRICS[exam+"-big"] : RUBRICS.small;}
+function wordReq(){return type==="small" ? {min:80,max:130,label:"约 100 词（80-130 较稳妥）"} : exam==="y1" ? {min:160,max:220,label:"160-200 词"} : {min:150,max:230,label:"不少于 150 词"};}
+
+function renderPrompt(){
+  const p=cur(), r=curRubric(), w=wordReq();
+  document.getElementById("promptMeta").innerHTML =
+    `<span class="chip">年份 <b>${p.y}</b></span><span class="chip">题型 <b>${type==="small"?"小作文 A 节":"大作文 B 节"}</b></span><span class="chip">分值 <b>${r.full} 分</b></span><span class="chip">词数 <b>${w.label}</b></span>${p.theme?`<span class="chip">主题 <b>${p.theme}</b></span>`:""}`;
+  document.getElementById("promptDir").textContent=p.dir;
+  document.getElementById("promptDesc").textContent=p.desc;
+  let fw="";
+  if(type==="big"){
+    fw = exam==="y1"
+      ? `<b>英语一大作文三段式（图画类）：</b><br>第一段 描述图画：As is vividly depicted in the picture, ...（总起＋细节＋过渡，3 句）<br>第二段 阐释寓意：The picture reveals that ... ＋ 论证（举例/因果/正反）<br>第三段 归纳评论：From my perspective, ... / Only in this way can we ...`
+      : `<b>英语二大作文三段式（图表类）：</b><br>第一段 描述图表：As is shown in the chart, ...（点明主题＋关键数据＋趋势）<br>第二段 分析原因：Several factors can account for this phenomenon. To begin with, ... Furthermore, ...<br>第三段 结论/预测：Taking all the factors into account, we may safely arrive at the conclusion that ...`;
+    if(p.vocab&&p.vocab.length) fw += `<br><br><b>主题高分词汇（点题必备，各选 1-2 个用进作文）：</b><br>`+p.vocab.map(v=>`<span class="alt">${esc(v)}</span>`).join("");
+  } else {
+    const b=LT_BANK[p.lt];
+    fw = `<b>${b.name}必备框架：</b>称呼（Dear ... / Dear Sir or Madam,）→ 自我介绍/写信目的 → 中段覆盖题目要点 → 期待回复/祝愿 → 落款（Yours sincerely, Li Ming）<br><br><b>高分开头（选一）：</b><ul>${b.open.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><b>中段表达（选一）：</b><ul>${b.mid.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><b>高分结尾（选一）：</b><ul>${b.close.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  }
+  document.getElementById("framework").innerHTML=fw;
+  document.getElementById("wcreq").textContent="要求："+w.label;
+  updateCount();
+}
+function updateCount(){
+  const m=essayEl.value.toLowerCase().match(/[a-z']+/g);
+  document.getElementById("wc").textContent=(m?m.length:0)+" 词";
+}
+segExam.addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  segExam.querySelectorAll("button").forEach(b=>b.classList.remove("on"));
+  e.target.classList.add("on"); exam=e.target.dataset.v; fillYears(); renderPrompt();
+});
+segType.addEventListener("click",e=>{
+  if(e.target.tagName!=="BUTTON")return;
+  segType.querySelectorAll("button").forEach(b=>b.classList.remove("on"));
+  e.target.classList.add("on"); type=e.target.dataset.v; fillYears(); renderPrompt();
+});
+yearSel.addEventListener("change",renderPrompt);
+essayEl.addEventListener("input",updateCount);
+
+/* ================= 批改引擎 ================= */
+function collectMatches(text){
+  const ms=[];
+  const addRules=(rules,kind)=>{
+    rules.forEach(r=>{
+      r.re.lastIndex=0; let m;
+      while((m=r.re.exec(text))!==null){
+        ms.push({s:m.index,e:m.index+m[0].length,kind,why:r.why,frag:m[0],alts:r.alts});
+        if(m.index===r.re.lastIndex)r.re.lastIndex++;
+      }
+    });
+  };
+  SPELL_RULES.forEach(r=>{r.re.lastIndex=0; let m; while((m=r.re.exec(text))!==null){ms.push({s:m.index,e:m.index+m[0].length,kind:"spelling",why:"拼写错误（或用词可疑）",frag:m[0],alts:r.alts}); if(m.index===r.re.lastIndex)r.re.lastIndex++;}});
+  addRules(GRAM_RULES,"grammar");
+  CLICHES.forEach(c=>{
+    const u=GENERAL_UPGRADES.find(g=>g.key===c.key); if(!u)return;
+    c.re.lastIndex=0; let m;
+    while((m=c.re.exec(text))!==null){
+      ms.push({s:m.index,e:m.index+m[0].length,kind:"cliche",why:u.why,frag:m[0],alts:u.alts,key:c.key});
+      if(m.index===c.re.lastIndex)c.re.lastIndex++;
+    }
+  });
+  connIssues(text).forEach(x=>ms.push({s:-1,kind:"grammar",why:x.why,frag:x.frag,alts:x.alts}));
+  ms.sort((a,b)=>a.s-b.s||b.e-a.e);
+  // 去重叠
+  const kept=[]; let lastEnd=-1;
+  ms.forEach(m=>{ if(m.s===-1){kept.push(m);return;} if(m.s>=lastEnd){kept.push(m); lastEnd=m.e;} });
+  return kept;
+}
+function goodHits(text){
+  const hits=[];
+  GOOD_RE.forEach(g=>{
+    if(g.re.test(text)) hits.push(g.label);
+  });
+  const low=text.toLowerCase();
+  const lk=LINKERS.filter(l=>low.includes(l));
+  return {hits,linkers:lk};
+}
+function renderAnno(text,matches){
+  const goods=[];
+  GOOD_RE.forEach(g=>{ const re=new RegExp(g.re.source,"gi"); let m; while((m=re.exec(text))!==null){ goods.push({s:m.index,e:m.index+m[0].length,label:g.label}); }});
+  const all=matches.filter(m=>m.s>=0).map(m=>({...m,cls:m.kind==="spelling"||m.kind==="grammar"?"err":m.kind==="cliche"?"cliche":""}))
+    .concat(goods.map(g=>({s:g.s,e:g.e,cls:"good",good:g.label})));
+  all.sort((a,b)=>a.s-b.s||b.e-a.e);
+  const kept=[]; let lastEnd=-1;
+  all.forEach(m=>{ if(m.s>=lastEnd){kept.push(m); lastEnd=m.e;} });
+  let html="",pos=0;
+  kept.forEach(m=>{
+    html+=esc(text.slice(pos,m.s));
+    html+=`<mark class="${m.cls}" ${m.good?`title="${esc(m.good)}"`:""}>${esc(text.slice(m.s,m.e))}</mark>`;
+    pos=m.e;
+  });
+  html+=esc(text.slice(pos));
+  return html;
+}
+/* ================= 跑题检测：各年真题主题关键词组 =================
+   每题 3-5 组词，每组代表题目要求的一个核心话题维度（同组为同义/近义表达）。
+   覆盖率 = 命中组数 / 总组数：<25% 判严重跑题；25-50% 明显偏题；50-75% 部分偏题；≥75% 切题。 */
+const TOPIC_KW = {
+  /* ---- 英语一 小作文 ---- */
+  "y1-small-2005":[["resign","quit"],["job","position","editor","work"],["apolog","sorry","regret"],["reason","because","due to"]],
+  "y1-small-2006":[["project hope"],["child","kid","girl","boy"],["aid","financial","tuition","fund","donat","sponsor"],["remote","rural","poverty","poor","countryside"]],
+  "y1-small-2007":[["library"],["suggest","advice","improve"],["book","journal","publication","reading room","opening hour","open hour"]],
+  "y1-small-2008":[["cd","disc","compact disc"],["return","mail","post","send"],["apolog","sorry"],["bob","landlord","canada"]],
+  "y1-small-2009":[["plastic bag","plastic"],["pollution","rubbish","garbage","litter","white pollution"],["suggest","advice"],["environment","eco-friendly","cloth bag","reusable"]],
+  "y1-small-2010":[["volunteer"],["conference","meeting","globalization"],["qualif","requirement","applicant","criteria"],["english","communication"]],
+  "y1-small-2011":[["movie","film","cinema"],["recommend"],["reason","because","plot","story","theme","acting"]],
+  "y1-small-2012":[["welcome"],["international student","foreign student","overseas student"],["suggest","advice"],["campus","university","chinese"]],
+  "y1-small-2013":[["invit"],["judge","referee","panel"],["speech contest","competition","contest"],["teacher","professor"]],
+  "y1-small-2014":[["physical","fitness","health","exercise","sport"],["suggest","advice"],["student","undergraduate"]],
+  "y1-small-2015":[["book","novel","reading"],["recommend"],["club","session","member"]],
+  "y1-small-2016":[["library"],["international student","freshman","new student","newly"],["borrow","loan","renew","catalog","opening"],["notice","information","inform","service"]],
+  "y1-small-2017":[["attraction","scenic","sightsee","tourist spot","place of interest"],["recommend"],["city","town","history","culture","local"]],
+  "y1-small-2018":[["invit"],["graduation","ceremony"],["expert","scholar","professor","faculty"],["hold","take place","scheduled","venue","a.m.","p.m."]],
+  "y1-small-2019":[["rural","village","primary school","countryside"],["project","aid","volunteer","program"],["teach","class","lesson","english"],["detail","arrange","accommodat","schedule"]],
+  "y1-small-2020":[["sing","song","vocal","choir"],["contest","competition"],["international student"],["sign up","register","deadline"]],
+  "y1-small-2021":[["job","career","employment","work in china"],["suggest","advice","tip"],["chinese","language","culture","interview"]],
+  "y1-small-2022":[["invit"],["innovation","contest","competition"],["team","group","organize"],["professor","british","university"]],
+  "y1-small-2023":[["research","project"],["assistant","recruit","hire"],["sport","campus activit","athletic"],["duty","responsib","requirement","collect","questionnair"]],
+  "y1-small-2024":[["oral report","presentation","report"],["scientist","zu chongzhi","zhang heng","ancient","chinese science"],["advice","suggest","prepare"],["organize","structure","introduction","rehearse"]],
+  "y1-small-2025":[["craft","craftsman","handmade"],["demonstrate","display"],["prepar","help","assist","venue","arrange"]],
+  "y1-small-2026":[["handwritten","letter"],["famil","chinese"],["display","exhibit","museum","gallery"],["reply","tell","share","keen"]],
+  /* ---- 英语一 大作文 ---- */
+  "y1-big-2010":[["culture","cultural"],["blend","integration","mix","diversity","exchange","mosaic","inclusive"],["hot pot","hotpot","nutritious","delicious"]],
+  "y1-big-2011":[["tourist","tourism","travel","journey"],["pollution","litter","garbage","rubbish","waste"],["lake","boat","scenic"],["environment","protect","civic"]],
+  "y1-big-2012":[["optimis","positive"],["pessimis","negative"],["attitude","outlook","mindset","perspective"],["bottle","glass","half","remain"]],
+  "y1-big-2013":[["graduate","graduation","student"],["choice","choose","option","path","decision","crossroad"],["job","career","further study","abroad","business","postgraduate"]],
+  "y1-big-2014":[["mother","daughter","parent"],["care","support","love","accompan","hand"],["thirty years","young","elderly","aged"],["gratitud","filial","repay","generation"]],
+  "y1-big-2015":[["phone","mobile","smartphone"],["friend","party","gathering","dinner","table"],["talk","communicate","conversation","face-to-face"],["addict","glue","head","phub","silent","cold"]],
+  "y1-big-2016":[["parent","father","mother","adult"],["read","book","study"],["example","model","teach","imitate"],["tv","television","watch"]],
+  "y1-big-2017":[["book","shelf","read"],["action","practice","apply","persever","persist"],["knowledge","learn","collect"]],
+  "y1-big-2018":[["course","class","curriculum"],["challenge","challenging","difficult","refreshing","novel"],["easy","comfort","pass"],["select","choose","pick"]],
+  "y1-big-2019":[["climb","mountain","hill"],["journey","way","path","trip"],["persist","persever","determination","effort","sweat"],["success","summit","top","goal"]],
+  "y1-big-2020":[["habit"],["homework","assignment","task","study"],["early","finish","complete","delay","procrastinat","deadline"],["diligent","lazy","sofa","relax"]],
+  "y1-big-2021":[["interest","passion","hobby","love"],["opera","peking","beijing","theatre","theater"],["classmate","other people","others","father"],["persist","insist","follow","confiden"]],
+  "y1-big-2022":[["learn","study","read"],["field","subject","disciplin","major","area"],["broad","extensive","wide","various","diverse"],["knowledge","librar","book"]],
+  "y1-big-2023":[["dragon","boat"],["race","racing","paddle"],["festival","tradition","culture"],["team","together","unity","health","fit"]],
+  "y1-big-2024":[["park"],["chart","number","figure","data"],["exercise","fit","health","work out"],["new","build","citizen","resident"]],
+  "y1-big-2025":[["chart","figure","data","table"],["air conditioner","washing machine","refrigerator","appliance","durable"],["household","family","per 100"],["income","living standard","econom","life","prosper"]],
+  "y1-big-2026":[["robot"],["elderly","old people","aging","senior","care"],["safety","safe","price","cost","convenience"],["accept","survey","percent","concern"]],
+  /* ---- 英语二 小作文 ---- */
+  "y2-small-2010":[["thank","gratitude","appreciat"],["reception","hospitality","welcome"],["visit china","come to china","china"],["colleague","american","program","exchange"]],
+  "y2-small-2011":[["congratulat"],["universit","college","admis"],["suggest","advice","prepare"],["campus","study","life"]],
+  "y2-small-2012":[["complain","dissatisf","complaint"],["dictionar","product","merchandise"],["faulty","defect","broken","problem","error"],["refund","replace","exchange","solution"]],
+  "y2-small-2013":[["charity","sale"],["donat","contribut","participat","take part"],["child","kid","in need","poor"],["detail","schedule","hold","classroom","campus"]],
+  "y2-small-2014":[["apartment","flat","room","share"],["habit","lifestyle","routine","schedule"],["advice","suggest","recommend"],["local","custom","shopping","weather","life"]],
+  "y2-small-2015":[["volunteer"],["nursing home","elderly","old people","senior"],["activity","clean","chat","perform","compan"],["sign up","register"]],
+  "y2-small-2016":[["thank","gratitude","appreciat"],["course","class","training","lesson"],["instructor","teacher","professor"],["suggest","improve","hands-on","advice"]],
+  "y2-small-2017":[["accept","invit","invitation"],["presentation","lecture","talk"],["chinese culture","tradition","china","chinese"],["international student","audience","student"]],
+  "y2-small-2018":[["apolog","sorry"],["appointment","meeting","meet"],["ill","sick","reason","emergency","hospital"],["reschedule","another time","next","postpone"]],
+  "y2-small-2019":[["debate"],["traffic","transport","city"],["topic","theme","motion"],["arrange","schedule","plan","venue"]],
+  "y2-small-2020":[["historical","historic","ancient","site"],["tour","visit","trip"],["tip","advice","suggest","wear","bring"],["international student","student"]],
+  "y2-small-2021":[["online","zoom","webinar","virtual"],["meeting","conference"],["invit","attend","participat"],["detail","agenda","platform","link","time"]],
+  "y2-small-2022":[["food","festival","cuisin","dish"],["invit","welcome","participat","attend"],["campus","school","university","gym"],["international student","student"]],
+  "y2-small-2023":[["exhibition","show","display"],["art exhibition","art show","painting","robot"],["suggest","recommend","advice"],["david","friend","reason"]],
+  "y2-small-2024":[["survey","questionnair","investigat","research"],["old house","ancient town","building","preserv","protect"],["plan","arrange","schedule","step"],["opinion","advice","feedback","think"]],
+  "y2-small-2025":[["play","drama","perform"],["novel","classic","literary","journey to the west","monkey"],["adapt","script","rehears","role"],["invit","take part","join"]],
+  "y2-small-2026":[["video"],["travel","trip","journey"],["china","chinese"],["watch","enjoy","impress","love","excit","keen"]],
+  /* ---- 英语二 大作文 ---- */
+  "y2-big-2010":[["mobile","phone","subscription"],["developing country","developed country","developing nations","developed nations"],["increase","rise","grow","surge","climb","soar"],["billion","user","number","figure"]],
+  "y2-big-2011":[["market share","brand","car","automobile","auto"],["domestic","chinese","japan","japanese"],["increase","rise","grow","gain"],["chart","figure","percent","data"]],
+  "y2-big-2012":[["satisfaction","satisf","survey"],["employee","worker","staff","age"],["young","old","over 50","under 40"],["dissatisf","content","career","job"]],
+  "y2-big-2013":[["part-time","part time"],["student","senior","freshman","grade","year"],["percent","proportion","majority"],["job","work","employ"]],
+  "y2-big-2014":[["urban","city","town"],["rural","village","countryside"],["population","resident","people"],["increase","rise","grow","double"]],
+  "y2-big-2015":[["spring festival","new year","holiday"],["spending","expense","expenditure","cost","money"],["gift","present","dinner","reunion","travel"],["percent","proportion","account"]],
+  "y2-big-2016":[["travel","trip","tourism","tour"],["purpose","motive","aim","reason"],["stress","relax","friend","scener","independ"],["percent","proportion","survey","student"]],
+  "y2-big-2017":[["museum"],["visitor","visit","attendance","audience"],["number","amount","figure"],["increase","rise","grow","upward"]],
+  "y2-big-2018":[["restaurant","dining","diner"],["factor","consider","concern","choos"],["flavor","taste","service","environment","ambiance","price"],["percent","proportion","account"]],
+  "y2-big-2019":[["graduate","graduation"],["employment","job","work","further study","postgraduate","abroad"],["destination","choice","career"],["percent","proportion","increase","change"]],
+  "y2-big-2020":[["mobile","phone","smartphone"],["read","reading"],["information","news","study","learn","knowledge"],["purpose","leisure","entertainment","pastime"]],
+  "y2-big-2021":[["exercise","work out","physical","fitness"],["alone","by oneself","on one's own"],["friend","community","group","together"],["percent","proportion","survey","way"]],
+  "y2-big-2022":[["express","delivery","parcel","package","courier"],["billion","volume","number"],["increase","rise","grow","climb"],["e-commerce","online shopping","internet","econom"]],
+  "y2-big-2023":[["health literacy","literacy"],["percent","level","rate","figure"],["increase","rise","grow","climb"],["health","awareness","knowledge","campaign"]],
+  "y2-big-2024":[["labor","labour","hands-on","practice course"],["skill","ability","gain","benefit","harvest"],["student","course","class"],["teamwork","understanding","cooperation","sense"]],
+  "y2-big-2025":[["elderly","senior","old people","aged","retire"],["leisure","recreation","activity","pastime"],["walk","stroll","television","chess","card","dance"],["community","health","social"]],
+  "y2-big-2026":[["children","child","kid"],["outdoor","outside","nature"],["curiosity","observation","fitness","health","parent"],["percent","proportion","survey","view"]],
+};
+function topicMatch(low,kw){
+  if(kw.includes(" ")) return low.includes(kw);
+  return new RegExp("\\b"+kw.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).test(low);
+}
+function topicCheck(text,q){
+  const groups=TOPIC_KW[exam+"-"+type+"-"+q.y];
+  if(!groups||!groups.length) return null;
+  const low=" "+text.toLowerCase().replace(/[^a-z0-9\s'-]/g," ")+" ";
+  const hit=[],miss=[];
+  groups.forEach(g=>{(g.some(k=>topicMatch(low,k))?hit:miss).push(g);});
+  const ratio=hit.length/groups.length;
+  let level,deduct,cap=1;
+  if(ratio>=0.75){level="ok";deduct=0;}
+  else if(ratio>=0.5){level="part";deduct=10;}
+  else if(ratio>=0.25){level="off";deduct=35;cap=0.6;}
+  else{level="far";deduct=70;cap=0.3;}
+  return {ratio,hit,miss,level,deduct,cap};
+}
+function bandOf(score,full){
+  const ratio=score/full;
+  if(ratio>=0.85) return full===20?["第五档","17-20","优秀范文水平：要点完整、语言流畅、衔接自然，可背诵仿写。"]:full===15?["第五档","13-15","优秀范文水平。"]:["第五档","9-10","优秀：格式规范、要点齐全、语言流畅。"];
+  if(ratio>=0.65) return full===20?["第四档","13-16","良好：结构完整、语言基本准确，个别复杂句有小错。"]:full===15?["第四档","10-12","良好：内容完整、语言基本准确。"]:["第四档","7-8","良好：要点齐全、语言基本准确。"];
+  if(ratio>=0.45) return full===20?["第三档","9-12","中等：要点基本齐全，但语言错误和模板痕迹较明显。"]:full===15?["第三档","7-9","中等：要点基本齐全，错误较明显。"]:["第三档","5-6","中等：要点有遗漏，语言错误可见。"];
+  if(ratio>=0.25) return full===20?["第二档","5-8","较弱：漏要点或语言错误较多，影响理解。"]:full===15?["第二档","4-6","较弱：要点不全，错误较多。"]:["第二档","3-4","较弱：要点遗漏明显，错误较多。"];
+  return ["第一档",full===20?"1-4":full===15?"1-3":"1-2","差：未能完成任务，需重写并背诵框架。"];
+}
+function grade(){
+  const text=essayEl.value.trim();
+  if(!text){alert("请先输入或粘贴你的作文。");return;}
+  const p=cur(), w=wordReq(), r=curRubric();
+  const wordsArr=text.toLowerCase().match(/[a-z']+/g)||[];
+  const wc=wordsArr.length;
+  const paras=text.split(/\n\s*\n/).filter(s=>s.trim());
+  const sents=text.split(/(?<=[.!?])\s+/).filter(s=>s.trim());
+  const matches=collectMatches(text);
+  const nSp=matches.filter(m=>m.kind==="spelling").length;
+  const nGr=matches.filter(m=>m.kind==="grammar").length;
+  const nCl=matches.filter(m=>m.kind==="cliche").length;
+  const {hits,linkers}=goodHits(text);
+  const uniq=new Set(wordsArr).size;
+  const ttr=wc?uniq/wc:0;
+  const avgLen=sents.length?wc/sents.length:0;
+  const lens=sents.map(s=>(s.match(/[a-z']+/gi)||[]).length);
+  const std=Math.sqrt(lens.reduce((a,b)=>a+(b-avgLen)**2,0)/Math.max(1,lens.length-1));
+
+  /* ---- 内容与格式 ---- */
+  let cont=100, notes=[];
+  if(type==="small"){
+    if(!/\b(dear|to whom it may concern|hello)\b/i.test(text)){cont-=25; notes.push("缺少称呼（Dear ... / Dear Sir or Madam,），应用文格式缺失会直接扣 1-2 分。");}
+    if(!/\b(yours sincerely|yours truly|sincerely yours|best regards|yours,)\b/i.test(text)){cont-=15; notes.push("缺少落款敬语（Yours sincerely, / Yours,），格式不完整。");}
+    if(!/\bli ming\b/i.test(text) && !/students'? union|postgraduates' association/i.test(text)){cont-=10; notes.push("落款未按题目要求署名 Li Ming（或机构名）。");}
+  } else {
+    if(paras.length<3){cont-=Math.min(25,(3-paras.length)*12); notes.push(`建议三段式（当前约 ${paras.length} 段）：描述→阐释/分析→评论，阅卷按段给分更清晰。`);}
+    if(wc<w.min*0.8){cont-=30; notes.push(`词数仅 ${wc}，低于要求（${w.label}），词数不足会按档扣分。`);}
+    else if(wc<w.min){cont-=10; notes.push(`词数 ${wc} 略低于建议下限 ${w.min}，再扩写 20-30 词更稳。`);}
+  }
+  if(wc>w.max*1.4){cont-=5; notes.push("词数偏多：作文纸格子有限，太长易挤占小作文/翻译空间且增加出错面。");}
+  /* ---- 跑题检测（评分标准：写无关内容直接降档） ---- */
+  const tc=topicCheck(text,p);
+  let topicHtml="";
+  if(tc){
+    const pct=Math.round(tc.ratio*100);
+    const missWords=[...new Set(tc.miss.flat())];
+    if(tc.level==="ok"){
+      if(tc.ratio<1) notes.push(`主题基本切题（话题词覆盖 ${pct}%），可再自然融入：${missWords.join(" / ")}，让点题更明显。`);
+    }else if(tc.level==="part"){
+      cont-=tc.deduct;
+      notes.push(`⭕ 主题相关性 ${pct}%：部分内容偏离题目核心话题，按\"漏要点/内容不完整\"扣分。本题应出现而未出现的话题词：${missWords.slice(0,8).join(" / ")}。`);
+    }else if(tc.level==="off"){
+      cont-=tc.deduct;
+      notes.push(`⚠️ 主题相关性仅 ${pct}%：文章明显偏题。评分标准明确\"写了很多无关内容\"将降档处理，本次已扣分并将分数上限压至满分的 ${Math.round(tc.cap*100)}%。未覆盖话题词：${missWords.slice(0,8).join(" / ")}。强烈建议围绕题目重写。`);
+    }else{
+      cont-=tc.deduct;
+      notes.push(`⚠️ 严重跑题：全文与本题（${p.t}${p.theme?"——"+p.theme:""}）基本无关。此类作文按评分标准归入第一/二档，本工具已将分数上限压至满分的 ${Math.round(tc.cap*100)}%。请对照题目 Directions 重写。`);
+    }
+    const col=tc.level==="ok"?"var(--green)":tc.level==="part"?"var(--amber)":"var(--red)";
+    const lbl=tc.level==="ok"?"切题":tc.level==="part"?"部分切题":tc.level==="off"?"明显偏题":"严重跑题";
+    const bg=tc.level==="ok"?"#f0fdf4":tc.level==="part"?"#fffbeb":"#fef2f2";
+    topicHtml=`<div style="margin:8px 0;padding:9px 12px;border-radius:8px;background:${bg};border-left:4px solid ${col};font-size:13.5px"><b style="color:${col}">主题相关性检测：${lbl}（${pct}%）</b> —— ${tc.level==="ok"?"文章围绕题目核心话题展开，无跑题扣分。":tc.level==="far"?"全文与题目要求的话题基本无关，已按评分标准封顶降档，请重写。":"存在偏离题目话题的内容，已按评分标准扣分"+(tc.cap<1?"并压档":"")+"。"}</div>`;
+    const bt=document.getElementById("bTopic");
+    bt.style.width=pct+"%"; bt.style.background=col;
+    document.getElementById("sTopic").textContent=pct;
+  }
+  cont=Math.max(15,cont);
+
+  /* ---- 语言准确性 ---- */
+  const density=(nSp*1.2+nGr*1.6+nCl*0.8)/(Math.max(20,wc)/10);
+  let acc=Math.max(15,100-density*9);
+  /* ---- 结构衔接 ---- */
+  let str=55;
+  str+=Math.min(20,linkers.length*4);
+  if(/\b(first(ly)?|to begin with|first and foremost)\b/i.test(text)) str+=6;
+  if(/\b(second(ly)?|furthermore|moreover|in addition|besides)\b/i.test(text)) str+=6;
+  if(/\b(final(ly)|last but not least|in conclusion|to sum up|all in all)\b/i.test(text)) str+=6;
+  if(type==="small"&&paras.length>=3) str+=8;
+  if(type==="big"&&paras.length>=3) str+=8;
+  str=Math.max(15,Math.min(100,str));
+  /* ---- 语言多样性 ---- */
+  let vary=45;
+  vary+=Math.min(24,hits.length*7);
+  vary+=Math.min(15,(ttr-0.35)*100);
+  if(avgLen>=11&&avgLen<=26) vary+=8; else if(avgLen>26) {vary+=2; notes.push(`平均句长 ${avgLen.toFixed(1)} 词偏长，多为流水长句，建议长短句交替（每 3-4 句插入一个短句）。`);}
+  if(std>=6) vary+=6; else notes.push("句长变化较小（句式单调），可穿插倒装、强调句、定语从句制造节奏感。");
+  vary=Math.max(15,Math.min(100,vary));
+
+  const raw=(cont*0.32+acc*0.32+str*0.19+vary*0.17)/100*r.full;
+  let score=Math.max(1,Math.round(raw));
+  if(tc&&tc.cap<1&&score>r.full*tc.cap) score=Math.max(1,Math.round(r.full*tc.cap));
+  const [band,range,comment]=bandOf(score,r.full);
+
+  /* ---- 渲染 ---- */
+  document.getElementById("scoreBig").textContent=score+" / "+r.full;
+  document.getElementById("scoreBand").textContent=band+" · 预估 "+range+" 分";
+  document.getElementById("circle").style.setProperty("--pct",Math.round(score/r.full*100));
+  const setBar=(id,pct,txt)=>{document.getElementById(id).style.width=pct+"%"; document.getElementById(id.replace("b","s")).textContent=Math.round(pct);};
+  setBar("bCont",cont); setBar("bAcc",acc); setBar("bStr",str); setBar("bVar",vary);
+
+  let v=topicHtml+`<b>一句话总评：</b>${comment}<br>`;
+  if(notes.length) v+=`<b>主要问题：</b><ul style="margin:6px 0 0 18px">`+notes.map(n=>`<li style="font-size:13.5px">${n}</li>`).join("")+`</ul>`;
+  const pos_=[];
+  pos_.push(`全文 ${wc} 词、约 ${sents.length} 句、${paras.length} 个自然段。`);
+  if(hits.length) pos_.push("检测到加分句式："+hits.join("；")+"。");
+  if(linkers.length>=4) pos_.push(`衔接词使用较充分（${linkers.slice(0,6).join(", ")} 等 ${linkers.length} 处）。`);
+  if(wc>=w.min&&wc<=w.max) pos_.push("词数符合要求。");
+  v+=`<b>数据速览：</b>${pos_.join(" ")}`;
+  document.getElementById("verdict").innerHTML=v;
+
+  document.getElementById("anno").innerHTML=renderAnno(text,matches);
+
+  /* 问题清单 */
+  const seen=new Set(); const issues=[];
+  matches.forEach(m=>{
+    const k=m.kind+m.frag.toLowerCase()+ (m.alts?m.alts[0]:"");
+    if(seen.has(k))return; seen.add(k);
+    const cls=m.kind==="cliche"?"warnc":"";
+    issues.push(`<div class="issue ${cls}"><span class="frag">${esc(m.frag)}</span><div class="why">${esc(m.why)}</div><div class="alts">${m.alts.map(a=>`<span class="alt">${esc(a)}</span>`).join("")}</div></div>`);
+  });
+  document.getElementById("issues").innerHTML=issues.length?issues.join(""):`<p style="font-size:14px">未检测到明显语法/拼写/用词问题，继续保持；注意本工具覆盖常见错误，仍建议通读检查时态与主谓一致。</p>`;
+
+  /* 亮点 */
+  const goodList=[];
+  hits.forEach(h=>goodList.push(`<div class="issue goodc"><span class="frag">✔ ${esc(h)}</span><div class="why">亮点句式是上档次的直接证据，评卷时会在\"语法结构多样性\"维度加分。</div></div>`));
+  if(linkers.length>=3) goodList.push(`<div class="issue goodc"><span class="frag">✔ 衔接词 ${linkers.length} 处</span><div class="why">${esc(linkers.join(", "))}——逻辑连贯是评分的重要维度。</div></div>`);
+  if(!goodList.length) goodList.push(`<div class="issue"><span class="frag">暂未发现亮点句式</span><div class="why">建议加入：Only in this way can we ...（倒装）、It is ... that ...（强调）、Not only ... but also ...（并列）、As is vividly shown in the picture ...（图表/图画引入）。</div></div>`);
+  document.getElementById("goods").innerHTML=goodList.join("");
+
+  /* 自检 */
+  document.getElementById("checks").innerHTML=p.checks.map(c=>`<label class="check-item"><input type="checkbox"> <span>${esc(c)}</span></label>`).join("");
+
+  /* 升级库：命中的 + 通用 */
+  const bankHit=[...new Set(matches.filter(m=>m.kind==="cliche"&&m.key).map(m=>m.key))];
+  let bankHtml="";
+  if(bankHit.length){
+    bankHtml+=`<h4>本篇命中的模板化表达（务必替换）</h4><ul>`+bankHit.map(k=>{
+      const u=GENERAL_UPGRADES.find(g=>g.key===k);
+      return `<li>“${esc(k)}” → ${u.alts.map(a=>esc(a)).join(" / ")}</li>`;
+    }).join("")+`</ul>`;
+  }
+  bankHtml+=`<h4>更多高分替换（王江涛式升级）</h4><ul>`+GENERAL_UPGRADES.slice(0,8).map(u=>`<li>“${esc(u.bad)}” → ${u.alts.map(a=>esc(a)).join(" / ")}</li>`).join("")+`</ul>`;
+  if(type==="small"){
+    const b=LT_BANK[p.lt];
+    bankHtml+=`<h4>${b.name}专属加分表达（本题收信人场景）</h4><ul>${[...p.vocab||[]].map(v=>`<li>${esc(v)}</li>`).join("")}</ul><p class="note">使用提示：每类选 1 句即可，堆砌模板反而降低\"语言自然流畅度\"。</p>`;
+  } else {
+    bankHtml+=`<h4>本题主题词汇（点题用）</h4><ul>${(p.vocab||[]).map(v=>`<li>${esc(v)}</li>`).join("")}</ul>`;
+  }
+  document.getElementById("bank").innerHTML=bankHtml;
+
+  /* 评分标准 */
+  const rub=r;
+  document.getElementById("rubric").innerHTML=`<table class="rubric"><tr><th>档次</th><th>标准</th></tr>`+rub.rows.map(x=>`<tr><th>${x[0]}</th><td>${x[1]}</td></tr>`).join("")+`</table><p style="font-size:12.5px;color:var(--muted);margin-top:8px">${rub.note}</p>`;
+
+  document.getElementById("result").classList.remove("hide");
+  document.getElementById("result").scrollIntoView({behavior:"smooth"});
+}
+document.getElementById("btnGrade").addEventListener("click",grade);
+fillYears(); renderPrompt();
+</script>
+</body>
+</html>
